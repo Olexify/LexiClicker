@@ -1,0 +1,2604 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LexiClicker</title>
+<link rel="icon" type="image/png" href="/AutoClicker.png">
+<link rel="shortcut icon" href="/AutoClicker.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300..700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+:root{
+  --text-xs:clamp(.75rem,.7rem + .25vw,.875rem);--text-sm:clamp(.875rem,.8rem + .35vw,1rem);
+  --text-base:clamp(1rem,.95rem + .25vw,1.125rem);--text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);
+  --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;--space-5:1.25rem;
+  --space-6:1.5rem;--space-8:2rem;--radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;
+  --radius-xl:1rem;--radius-full:9999px;--transition:180ms cubic-bezier(.16,1,.3,1);
+  --font-body:'Inter','Helvetica Neue',sans-serif;--font-mono:'JetBrains Mono','Fira Mono',monospace;
+  --ui-scale:1;
+}
+:root,[data-theme="light"]{
+  --bg:#f7f6f2;--surface:#f9f8f5;--surface-2:#fbfbf9;--surface-off:#f3f0ec;
+  --surface-off2:#edeae5;--divider:#dcd9d5;--border:#d4d1ca;
+  --text:#28251d;--muted:#7a7974;--faint:#bab9b4;
+  --primary:#01696f;--primary-h:#0c4e54;--primary-a:#0f3638;--primary-hi:#cedcd8;
+  --error:#a12c7b;--error-h:#7d1e5e;--error-hi:#e0ced7;
+  --success:#437a22;--success-hi:#d4dfcc;--warning:#964219;--warning-hi:#ddcfc6;
+  --sh-sm:0 1px 2px oklch(.2 .01 80/.06);--sh-md:0 4px 12px oklch(.2 .01 80/.08);--sh-lg:0 12px 32px oklch(.2 .01 80/.12);
+  --glow:0 0 20px oklch(.48 .09 192/.15);
+}
+[data-theme="dark"]{
+  --bg:#0f0f0d;--surface:#161614;--surface-2:#1c1b19;--surface-off:#1d1c1a;
+  --surface-off2:#222120;--divider:#252422;--border:#323130;
+  --text:#cdccca;--muted:#797876;--faint:#4a4947;
+  --primary:#3d9ea8;--primary-h:#4fb8c4;--primary-a:#6accd6;--primary-hi:#1e3235;
+  --error:#d163a7;--error-h:#b9478f;--error-hi:#2e1e28;
+  --success:#6daa45;--success-hi:#1e2e16;--warning:#fdab43;--warning-hi:#2e1e0a;
+  --sh-sm:0 1px 2px oklch(0 0 0/.3);--sh-md:0 4px 12px oklch(0 0 0/.4);--sh-lg:0 12px 32px oklch(0 0 0/.5);
+  --glow:0 0 24px oklch(.6 .1 192/.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{min-height:100dvh;font-family:var(--font-body);font-size:calc(var(--text-sm)*var(--ui-scale));color:var(--text);background:var(--bg)}
+button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
+input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:var(--radius-sm)}
+.shell{display:grid;grid-template-rows:auto 1fr;min-height:100dvh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-5);background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;gap:var(--space-4)}
+.logo{display:flex;align-items:center;gap:var(--space-2);color:var(--primary)}
+.logo-icon{width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0}
+.logo-name{font-weight:700;font-size:var(--text-base);letter-spacing:-.02em;color:var(--text)}
+.logo-badge{font-size:10px;font-weight:700;padding:2px 7px;background:var(--primary-hi);color:var(--primary);border-radius:var(--radius-full);letter-spacing:.06em;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:var(--space-3)}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--error);transition:background .4s;flex-shrink:0}
+.conn-dot.ok{background:var(--success)}
+.conn-label{font-size:var(--text-xs);color:var(--muted)}
+/* UI Scale control */
+.scale-ctrl{display:flex;align-items:center;gap:6px;background:var(--surface-off);border:1px solid var(--border);border-radius:var(--radius-lg);padding:3px 8px}
+.scale-label{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap}
+.scale-btn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);color:var(--muted);font-size:14px;font-weight:700;line-height:1}
+.scale-btn:hover{background:var(--surface-2);color:var(--primary)}
+.scale-val{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--primary);min-width:28px;text-align:center}
+.layout{display:grid;grid-template-columns:280px 1fr;height:calc(100dvh - 49px);overflow:hidden}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.sidebar::-webkit-scrollbar{width:3px}.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:var(--radius-full)}
+.main-panel{overflow-y:auto;padding:var(--space-5);padding-top:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)}
+.main-panel::-webkit-scrollbar{width:4px}.main-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:var(--radius-full)}
+.sec{border-bottom:1px solid var(--divider);transition:opacity .15s,box-shadow .15s}
+.sec.dragging{opacity:.55;box-shadow:0 8px 24px oklch(0 0 0/.25);border-radius:var(--radius-md);border:1px dashed var(--primary);z-index:10}
+.sec.drag-over-before{border-top:2px solid var(--primary)}
+.sec.drag-over-after{border-bottom:2px solid var(--primary)}
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-4);cursor:pointer;user-select:none}
+.sec-head:hover{background:var(--surface-off)}
+.sec-drag-grip{cursor:grab;color:var(--faint);padding:0 4px 0 0;display:flex;align-items:center;flex-shrink:0;font-size:14px;line-height:1}
+.sec-drag-grip:hover{color:var(--muted)}
+.sec-drag-grip:active{cursor:grabbing}
+.sec-title{font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;align-items:center;gap:var(--space-2)}
+.sec-title svg{color:var(--primary)}
+.sec-body{padding:var(--space-3) var(--space-4) var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)}
+.sec-body.collapsed{display:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2)}
+.label{font-size:var(--text-xs);font-weight:500;color:var(--muted);display:block;margin-bottom:var(--space-1)}
+.input{width:100%;padding:6px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);font-size:var(--text-xs);font-family:var(--font-mono)}
+.input:hover{border-color:var(--primary)}.input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px oklch(from var(--primary) l c h/.12)}
+.input-wrap{display:flex;align-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px oklch(from var(--primary) l c h/.12)}
+.input-wrap .input{background:none;border:none;box-shadow:none}
+.input-wrap .suf{padding:0 8px;font-size:var(--text-xs);color:var(--faint);font-family:var(--font-mono);white-space:nowrap;border-left:1px solid var(--border)}
+.select{width:100%;padding:6px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);font-size:var(--text-xs);cursor:pointer}
+.select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px oklch(from var(--primary) l c h/.12)}
+.seg{display:flex;background:var(--surface-off);border-radius:var(--radius-md);padding:2px;gap:1px}
+.seg-btn{flex:1;padding:4px 6px;border-radius:calc(var(--radius-md) - 1px);font-size:var(--text-xs);font-weight:500;color:var(--muted);text-align:center;transition:all var(--transition)}
+.seg-btn:hover{color:var(--text)}.seg-btn.on{background:var(--surface);color:var(--text);box-shadow:var(--sh-sm)}
+.slider-wrap{display:flex;flex-direction:column;gap:4px}
+.slider-hd{display:flex;justify-content:space-between;align-items:center}
+.slider-val{font-family:var(--font-mono);font-size:var(--text-xs);font-weight:600;color:var(--primary);background:var(--primary-hi);padding:1px 7px;border-radius:var(--radius-sm)}
+.slider{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:var(--radius-full);background:var(--border);cursor:pointer}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--primary);box-shadow:var(--sh-sm);cursor:pointer;transition:transform var(--transition)}
+.slider::-webkit-slider-thumb:hover{transform:scale(1.3)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0}
+.toggle-info .t-name{font-size:var(--text-xs);font-weight:500}
+.toggle-info .t-desc{font-size:10px;color:var(--muted)}
+.tog{position:relative;width:38px;height:20px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{position:absolute;inset:0;border-radius:var(--radius-full);background:var(--border);cursor:pointer;transition:background var(--transition);box-shadow:0 0 0 1.5px color-mix(in oklch,var(--border) 80%,transparent)}
+.tog input:checked+.tog-track{background:var(--primary)}
+.tog-thumb{position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform var(--transition);pointer-events:none}
+.tog input:checked~.tog-thumb{transform:translateX(18px)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--radius-md);font-size:var(--text-xs);font-weight:600;cursor:pointer;border:1px solid transparent;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-h)}.btn-primary:active{background:var(--primary-a)}
+.btn-danger{background:var(--error);color:#fff}.btn-danger:hover{background:var(--error-h)}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--border)}.btn-ghost:hover{background:var(--surface-off);color:var(--text)}
+.btn-xs{padding:3px 9px;font-size:10px}
+.btn-icon{width:28px;height:28px;padding:0;justify-content:center;border-radius:var(--radius-md)}.btn-icon:hover{background:var(--surface-off)}
+.btn-save-pos{background:var(--warning-hi);color:var(--warning);border-color:color-mix(in oklch,var(--warning) 30%,transparent)}
+.btn-save-pos:hover{background:var(--warning);color:#fff}
+.btn-save-pos.flash{animation:posFlash .5s ease}
+@keyframes posFlash{0%{transform:scale(1)}30%{transform:scale(1.12);background:var(--success);color:#fff}100%{transform:scale(1)}}
+.status-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-4) var(--space-5);display:flex;align-items:center;gap:var(--space-4);position:relative;flex-wrap:wrap}
+.status-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,oklch(from var(--primary) l c h/.05),transparent 60%);pointer-events:none}
+.status-icon{width:56px;height:56px;border-radius:var(--radius-lg);background:var(--primary-hi);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.status-icon.live{background:color-mix(in oklch,var(--success) 12%,var(--surface))}
+.status-icon.live svg{color:var(--success)}
+.status-icon.live::after{content:'';position:absolute;inset:-2px;border-radius:inherit;border:2px solid var(--success);opacity:.4;animation:pr 2s ease-in-out infinite}
+@keyframes pr{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.1;transform:scale(1.06)}}
+.status-info{flex:1}
+.status-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:3px}
+.status-state{font-size:var(--text-lg);font-weight:700;letter-spacing:-.02em}
+.status-state.live{color:var(--success)}
+.status-info{flex:1;min-width:120px}.status-sub{font-size:var(--text-xs);color:var(--muted);margin-top:3px}
+.stats-row{display:flex;gap:var(--space-4);flex-shrink:0;flex-wrap:wrap}
+.stat{text-align:center;min-width:52px}
+.stat-val{font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;letter-spacing:-.02em;line-height:1}
+.stat-label{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+.main-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:var(--space-3);padding:var(--space-4) var(--space-8);background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xl);font-size:var(--text-base);font-weight:700;cursor:pointer;box-shadow:var(--sh-md),var(--glow);transition:all var(--transition);letter-spacing:-.01em}
+.main-btn.cooldown-active{background:var(--surface-2,#2a2a2a)!important;color:var(--muted)!important;cursor:not-allowed!important;box-shadow:none!important;opacity:.75;animation:cooldown-pulse 1s ease-in-out infinite}
+@keyframes cooldown-pulse{0%,100%{opacity:.75}50%{opacity:.5}}
+.main-btn:hover{background:var(--primary-h);transform:translateY(-1px);box-shadow:var(--sh-lg),var(--glow)}
+.main-btn:active{transform:none;box-shadow:var(--sh-sm)}
+.main-btn.stop{background:var(--error);box-shadow:var(--sh-md),0 0 24px oklch(from var(--error) l c h/.2)}
+.main-btn.stop:hover{background:var(--error-h)}
+.seq-table{width:100%;border-collapse:collapse}
+.seq-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.seq-table td{padding:5px 8px;border-bottom:1px solid var(--divider);font-size:var(--text-xs);vertical-align:middle}
+.seq-table tr:last-child td{border-bottom:none}
+.seq-table tr:hover td{background:var(--surface-off)}
+.seq-input{width:100%;padding:3px 6px;background:transparent;border:1px solid transparent;border-radius:var(--radius-sm);font-size:var(--text-xs);font-family:var(--font-mono)}
+.seq-input:hover{border-color:var(--border)}.seq-input:focus{outline:none;border-color:var(--primary);background:var(--surface-2)}
+.seq-xy{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--primary)}
+.drag-handle{cursor:grab;color:var(--faint);padding:0 4px}.drag-handle:active{cursor:grabbing}
+.coord-bar{background:var(--primary-hi);border:1px solid oklch(from var(--primary) l c h/.3);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
+.coord-live{font-family:var(--font-mono);font-size:var(--text-sm);font-weight:700;color:var(--primary);min-width:160px}
+.coord-saved{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--muted);min-width:140px;transition:color .3s}
+.coord-saved.flash-green{color:var(--success);font-weight:700}
+.coord-instructions{font-size:var(--text-xs);color:var(--primary);opacity:.8;flex:1}
+.prog-wrap{background:var(--surface-off);border-radius:var(--radius-full);height:4px;overflow:hidden;margin-top:4px}
+.prog-fill{height:100%;background:var(--primary);border-radius:var(--radius-full);transition:width .3s ease}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:var(--radius-full);font-size:10px;font-weight:600}
+.badge-green{background:var(--success-hi);color:var(--success)}.badge-red{background:var(--error-hi);color:var(--error)}
+.badge-blue{background:var(--primary-hi);color:var(--primary)}.badge-yellow{background:var(--warning-hi);color:var(--warning)}
+.kbd{display:inline-flex;font-family:var(--font-mono);font-size:10px;color:var(--muted);background:var(--surface-off2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1px 5px}
+.log-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl)}
+.log-hd{display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border)}
+.log-body{min-height:120px;overflow-y:auto;padding:var(--space-3) var(--space-5);font-family:var(--font-mono);font-size:10px}
+.log-body::-webkit-scrollbar{width:3px}.log-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:var(--radius-full)}
+.seq-profile-active{background:var(--primary)!important;color:#fff!important;font-weight:700!important}
+.log-entry{display:flex;gap:var(--space-3);padding:2px 0;border-bottom:1px solid oklch(from var(--divider) l c h/.4);line-height:1.4}
+.log-entry:last-child{border-bottom:none}
+.log-t{color:var(--faint);flex-shrink:0;min-width:80px}
+.log-m{color:var(--muted)}.log-m.s{color:var(--success)}.log-m.e{color:var(--error)}.log-m.w{color:var(--warning)}.log-m.i{color:var(--primary)}
+.offline-banner{display:none;background:var(--warning-hi);border:1px solid var(--warning);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);font-size:var(--text-xs);color:var(--warning);align-items:center;gap:var(--space-3)}
+.offline-banner.show{display:flex}
+.toast-cont{position:fixed;bottom:var(--space-5);right:var(--space-5);display:flex;flex-direction:column;gap:6px;z-index:9999;pointer-events:none}
+.toast{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);font-size:var(--text-xs);box-shadow:var(--sh-lg);display:flex;align-items:center;gap:var(--space-3);pointer-events:auto;animation:ti .3s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes ti{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:none}}
+.toast-out{animation:to .2s ease forwards}
+@keyframes to{to{opacity:0;transform:translateY(4px) scale(.97)}}
+.theme-toggle{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--muted);position:relative}
+.theme-toggle:hover{background:var(--surface-off);color:var(--text)}
+.theme-popup{position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--sh-lg);padding:8px;z-index:200;display:none;flex-direction:column;gap:4px;min-width:200px;max-height:340px;overflow-y:auto}
+.theme-popup.open{display:flex}
+.theme-popup-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--radius-md);cursor:pointer;font-size:11px;font-weight:500;color:var(--text);transition:background var(--transition);border:1px solid transparent;white-space:nowrap}
+.theme-popup-item:hover{background:var(--surface-off)}
+.theme-popup-item.active{border-color:var(--primary);background:var(--primary-hi)}
+.theme-swatch{width:28px;height:18px;border-radius:4px;flex-shrink:0;border:1px solid rgba(0,0,0,.1)}
+/* Presets */
+.preset-btn{display:flex;align-items:center;gap:var(--space-3);padding:7px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);width:100%;text-align:left;transition:all var(--transition);position:relative}
+.preset-btn:hover{border-color:var(--primary);background:var(--primary-hi)}
+.preset-del{position:absolute;right:6px;top:50%;transform:translateY(-50%);opacity:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);color:var(--error);transition:opacity .15s}
+.preset-btn:hover .preset-del{opacity:1}
+.preset-del:hover{background:var(--error-hi)}
+/* Click visualizer overlay */
+#clickCanvas{position:fixed;inset:0;pointer-events:none;z-index:9998}
+/* Sound wave */
+@keyframes ripple{0%{transform:scale(0);opacity:.8}100%{transform:scale(2.5);opacity:0}}
+@media(max-width:768px){.layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}.sidebar{height:auto;max-height:40vh}.stats-row{display:none}}
+</style>
+</head>
+<body>
+<canvas id="clickCanvas"></canvas>
+<div class="shell">
+<header class="topbar">
+  <div class="logo">
+    <img id="appIconImg" class="logo-icon" src="AutoClicker.png" alt="Lexi"
+         onerror="this.style.display='none';document.getElementById('appIconSvg').style.display='flex'">
+    <svg id="appIconSvg" width="26" height="26" viewBox="0 0 32 32" fill="none" style="display:none">
+      <rect width="32" height="32" rx="8" fill="currentColor" opacity=".12"/>
+      <circle cx="16" cy="16" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+      <circle cx="16" cy="16" r="4" fill="currentColor"/>
+      <line x1="16" y1="4" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="16" y1="25" x2="16" y2="28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="4" y1="16" x2="7" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="25" y1="16" x2="28" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="logo-name">LexiClicker</span>
+    <span class="logo-badge">Pro v2</span>
+  </div>
+  <div class="topbar-right">
+    <!-- Creator -->
+    <span style="font-size:9px;color:var(--faint);letter-spacing:.04em;white-space:nowrap">made by <strong style="color:var(--primary)">OleksNexus</strong></span>
+    <!-- UI Scale -->
+    <div class="scale-ctrl" title="Browser Zoom">
+      <span class="scale-label">Zoom</span>
+      <button class="scale-btn" onclick="adjustScale(-0.1)">−</button>
+      <span class="scale-val" id="scaleVal">100%</span>
+      <button class="scale-btn" onclick="adjustScale(0.1)">+</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="conn-dot" id="connDot"></span>
+      <span class="conn-label" id="connLabel">Connecting…</span>
+    </div>
+    <div class="theme-toggle" id="themeToggleWrapper" style="cursor:pointer">
+      <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle theme" style="position:static;width:32px;height:32px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <div class="theme-popup" id="themePopup">
+        <!-- populated by JS -->
+      </div>
+    </div>
+    <button class="scale-btn" id="minimizeTrayBtn" title="Hide to notification tray" onclick="minimizeToTray()" style="display:none;width:26px;height:26px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+
+  <!-- PRESETS -->
+  <div class="sec" id="sec-location">
+    <div class="sec-head" onclick="toggleSec(this,'location')">
+      <span class="sec-drag-grip" title="Drag to reorder" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">⠿</span>
+      <span class="sec-title"><i data-lucide="crosshair" style="width:12px;height:12px"></i> <span data-i18n="location">Location</span></span>
+      <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--faint)"></i>
+    </div>
+    <div class="sec-body">
+      <div>
+        <div class="label" data-i18n="mode_label">Mode</div>
+        <div class="seg" id="seg-loc">
+          <button class="seg-btn" data-val="cursor" onclick="segPick(this,'seg-loc','loc_mode');locMode('cursor')">Cursor</button>
+          <button class="seg-btn on" data-val="fixed" onclick="segPick(this,'seg-loc','loc_mode');locMode('fixed')">Fixed</button>
+          <button class="seg-btn" data-val="random" onclick="segPick(this,'seg-loc','loc_mode');locMode('random')">Area</button>
+          <button class="seg-btn" data-val="sequence" onclick="segPick(this,'seg-loc','loc_mode');locMode('sequence')">Seq</button>
+        </div>
+      </div>
+      <div id="loc-fixed">
+        <div class="form-row">
+          <div><div class="label">X</div><input type="number" class="input" id="in-fx" value="500" oninput="cfgSend({fixed_x:+this.value})"></div>
+          <div><div class="label">Y</div><input type="number" class="input" id="in-fy" value="300" oninput="cfgSend({fixed_y:+this.value})"></div>
+        </div>
+      </div>
+      <div id="loc-random" style="display:none">
+        <div class="form-row">
+          <div><div class="label">Center X</div><input type="number" class="input" id="in-cx" value="500" oninput="cfgSend({fixed_x:+this.value})"></div>
+          <div><div class="label">Center Y</div><input type="number" class="input" id="in-cy" value="300" oninput="cfgSend({fixed_y:+this.value})"></div>
+        </div>
+        <div class="form-row" style="margin-top:6px">
+          <div><div class="label">Radius X</div><input type="number" class="input" id="in-rx" value="100" oninput="cfgSend({rand_radius_x:+this.value})"></div>
+          <div><div class="label">Radius Y</div><input type="number" class="input" id="in-ry" value="100" oninput="cfgSend({rand_radius_y:+this.value})"></div>
+        </div>
+      </div>
+      <div id="loc-seq-note" style="display:none">
+        <p style="font-size:10px;color:var(--muted)">Use Sequence section below to add steps.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-presets">
+    <div class="sec-head" onclick="toggleSec(this,'presets')">
+      <span class="sec-drag-grip" title="Drag to reorder" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">⠿</span>
+      <span class="sec-title"><i data-lucide="bookmark" style="width:12px;height:12px"></i> <span data-i18n="presets">Presets</span></span>
+      <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--faint)"></i>
+    </div>
+    <div class="sec-body">
+      <div style="display:grid;gap:var(--space-2)">
+        <button class="preset-btn" onclick="loadPreset('gaming')">
+          <span class="badge badge-blue">🎮 <span data-i18n="preset_gaming">Gaming</span></span>
+          <span style="font-size:10px;color:var(--muted)" data-i18n="preset_gaming_desc">50ms fixed · left · infinite</span>
+        </button>
+        <button class="preset-btn" onclick="loadPreset('farming')">
+          <span class="badge badge-green">🌾 <span data-i18n="preset_farming">Farming</span></span>
+          <span style="font-size:10px;color:var(--muted)" data-i18n="preset_farming_desc">1s random · left · infinite</span>
+        </button>
+        <button class="preset-btn" onclick="loadPreset('human')">
+          <span class="badge badge-yellow">🧠 <span data-i18n="preset_human">Human-like</span></span>
+          <span style="font-size:10px;color:var(--muted)" data-i18n="preset_human_desc">Human mode · jitter on</span>
+        </button>
+        <button class="preset-btn" onclick="loadPreset('rapid')">
+          <span class="badge badge-red">⚡ <span data-i18n="preset_rapid">Rapid Fire</span></span>
+          <span style="font-size:10px;color:var(--muted)" data-i18n="preset_rapid_desc">10ms · max speed</span>
+        </button>
+        <button class="preset-btn" onclick="loadPreset('test')">
+          <span class="badge badge-blue">🧪 <span data-i18n="preset_test">Test Run</span></span>
+          <span style="font-size:10px;color:var(--muted)" data-i18n="preset_test_desc">200ms · 10 clicks</span>
+        </button>
+      </div>
+      <div style="border-top:1px solid var(--divider);padding-top:var(--space-3);margin-top:var(--space-1)">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:var(--space-2)" data-i18n="saved_presets">Saved Presets</div>
+        <div id="customPresetsList" style="display:grid;gap:6px"></div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:var(--space-2);font-size:10px" onclick="saveCurrentAsPreset()">
+          <i data-lucide="plus" style="width:11px;height:11px"></i> Save Current as Preset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERVAL -->
+  <div class="sec" id="sec-interval">
+    <div class="sec-head" onclick="toggleSec(this,'interval')">
+      <span class="sec-drag-grip" title="Drag to reorder" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">⠿</span>
+      <span class="sec-title"><i data-lucide="timer" style="width:12px;height:12px"></i> <span data-i18n="interval">Interval</span></span>
+      <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--faint)"></i>
+    </div>
+    <div class="sec-body">
+      <div>
+        <div class="label" data-i18n="mode_label">Mode</div>
+        <div class="seg" id="seg-interval">
+          <button class="seg-btn on" data-val="fixed" onclick="segPick(this,'seg-interval','interval_mode')">Fixed</button>
+          <button class="seg-btn" data-val="random" onclick="segPick(this,'seg-interval','interval_mode')">Random</button>
+          <button class="seg-btn" data-val="human" onclick="segPick(this,'seg-interval','interval_mode')">Human</button>
+        </div>
+      </div>
+      <div id="panel-fixed">
+        <div class="slider-wrap">
+          <div class="slider-hd"><span class="label" style="margin:0">Interval</span><span class="slider-val" id="sv-interval" title="Click to edit ms value" style="cursor:pointer" onclick="startEditInterval(this)">100ms</span></div>
+          <input type="range" class="slider" id="sl-interval" min="1" max="5000" value="100" oninput="slideInterval(this)">
+        </div>
+        <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-ghost btn-xs" onclick="nudgeInterval(-100)">&#8722;100</button>
+          <button class="btn btn-ghost btn-xs" onclick="nudgeInterval(-10)">&#8722;10</button>
+          <button class="btn btn-ghost btn-xs" onclick="nudgeInterval(-1)">&#8722;1</button>
+          <button class="btn btn-ghost btn-xs" onclick="nudgeInterval(1)">+1</button>
+          <button class="btn btn-ghost btn-xs" onclick="nudgeInterval(10)">+10</button>
+          <button class="btn btn-ghost btn-xs" onclick="nudgeInterval(100)">+100</button>
+          <span style="font-size:10px;color:var(--faint);margin-left:2px">ms</span>
+        </div>
+      </div>
+      <div id="panel-random" style="display:none">
+        <div class="form-row">
+          <div><div class="label">Min</div><div class="input-wrap"><input type="number" class="input" id="in-rmin" value="50" min="1" oninput="cfgSend({rand_min:+this.value})"><span class="suf">ms</span></div></div>
+          <div><div class="label">Max</div><div class="input-wrap"><input type="number" class="input" id="in-rmax" value="500" min="1" oninput="cfgSend({rand_max:+this.value})"><span class="suf">ms</span></div></div>
+        </div>
+      </div>
+      <div id="panel-human" style="display:none">
+        <div class="slider-wrap">
+          <div class="slider-hd"><span class="label" style="margin:0">CPS</span><span class="slider-val" id="sv-hcps">4</span></div>
+          <input type="range" class="slider" id="sl-hcps" min="1" max="20" value="4" oninput="document.getElementById('sv-hcps').textContent=this.value;cfgSend({human_cps:+this.value})">
+        </div>
+      </div>
+    </div>
+  </div>
+      <!-- Key/Mouse Adjusters shared: visible in fixed + human mode -->
+      <div id="panel-adjuster" style="margin-top:10px;border-top:1px solid var(--divider);padding-top:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span class="label" style="margin:0;font-size:var(--text-xs)">&#9881; Key/Mouse Adjusters</span>
+          <button class="btn btn-ghost btn-xs" onclick="addIntervalAdjuster()">&#65291; Add</button>
+        </div>
+        <div id="intervalAdjustersList" style="display:flex;flex-direction:column;gap:5px"></div>
+      </div>
+
+  <!-- MOUSE -->
+  <div class="sec" id="sec-mouse">
+    <div class="sec-head" onclick="toggleSec(this,'mouse')">
+      <span class="sec-drag-grip" title="Drag to reorder" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">⠿</span>
+      <span class="sec-title"><i data-lucide="mouse-pointer" style="width:12px;height:12px"></i> <span data-i18n="mouse">Mouse</span></span>
+      <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--faint)"></i>
+    </div>
+    <div class="sec-body">
+      <div>
+        <div class="label">Button</div>
+        <div class="seg" id="seg-btn">
+          <button class="seg-btn on" data-val="left" onclick="segPick(this,'seg-btn','mouse_btn')">Left</button>
+          <button class="seg-btn" data-val="right" onclick="segPick(this,'seg-btn','mouse_btn')">Right</button>
+          <button class="seg-btn" data-val="middle" onclick="segPick(this,'seg-btn','mouse_btn')">Mid</button>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="t-name">Double click</span></div>
+        <label class="tog"><input type="checkbox" id="tog-double" onchange="cfgSend({double_click:this.checked})"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="t-name">Invisible click</span>
+          <span class="t-desc">Click at fixed pos without moving cursor</span>
+        </div>
+        <label class="tog"><input type="checkbox" id="tog-invisible" onchange="cfgSend({invisible_click:this.checked})"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCATION -->
+  
+
+  <!-- REPEAT -->
+  <div class="sec" id="sec-repeat">
+    <div class="sec-head" onclick="toggleSec(this,'repeat')">
+      <span class="sec-drag-grip" title="Drag to reorder" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">⠿</span>
+      <span class="sec-title"><i data-lucide="repeat" style="width:12px;height:12px"></i> <span data-i18n="repeat">Repeat</span></span>
+      <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--faint)"></i>
+    </div>
+    <div class="sec-body">
+      <div>
+        <div class="label" data-i18n="mode_label">Mode</div>
+        <div class="seg" id="seg-rep">
+          <button class="seg-btn on" data-val="infinite" onclick="segPick(this,'seg-rep','repeat_mode');repMode('infinite')">∞</button>
+          <button class="seg-btn" data-val="count" onclick="segPick(this,'seg-rep','repeat_mode');repMode('count')">Count</button>
+          <button class="seg-btn" data-val="duration" onclick="segPick(this,'seg-rep','repeat_mode');repMode('duration')">Time</button>
+        </div>
+      </div>
+      <div id="rep-count" style="display:none">
+        <div class="label" data-i18n="click_count">Click count</div>
+        <div class="input-wrap"><input type="number" class="input" id="in-count" value="100" min="1" oninput="cfgSend({repeat_count:+this.value})"><span class="suf">×</span></div>
+        <div class="prog-wrap"><div class="prog-fill" id="prog-count" style="width:0%"></div></div>
+        <div style="font-size:10px;color:var(--faint);margin-top:3px" id="prog-count-label">0 / 100</div>
+      </div>
+      <div id="rep-dur" style="display:none">
+        <div class="form-row">
+          <div><div class="label">Minutes</div><input type="number" class="input" id="in-dmin" value="1" min="0" oninput="updateDurConfig()"></div>
+          <div><div class="label">Seconds</div><input type="number" class="input" id="in-dsec" value="0" min="0" max="59" oninput="updateDurConfig()"></div>
+        </div>
+        <div class="prog-wrap"><div class="prog-fill" id="prog-dur" style="width:0%"></div></div>
+        <div style="font-size:10px;color:var(--faint);margin-top:3px" id="prog-dur-label">0:00 remaining</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTIONS -->
+  <div class="sec" id="sec-options">
+    <div class="sec-head" onclick="toggleSec(this,'options')">
+      <span class="sec-drag-grip" title="Drag to reorder" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">⠿</span>
+      <span class="sec-title"><i data-lucide="settings-2" style="width:12px;height:12px"></i> <span data-i18n="options">Options</span></span>
+      <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--faint)"></i>
+    </div>
+    <div class="sec-body">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="t-name" data-i18n="viz_label">Click visualizer</span>
+          <span class="t-desc" data-i18n="viz_desc">Show dot animation at click point</span>
+        </div>
+        <label class="tog"><input type="checkbox" id="tog-viz" onchange="lsSave({viz:this.checked})"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="t-name" data-i18n="sound_label">Sound feedback</span>
+          <span class="t-desc" data-i18n="sound_desc">Play sound on each click</span>
+        </div>
+        <label class="tog"><input type="checkbox" id="tog-sound" onchange="lsSave({sound:this.checked});toggleSoundPanel(this.checked)"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+      <!-- Sound panel -->
+      <div id="soundPanel" style="margin-top:2px;padding:10px;background:var(--surface-off);border-radius:var(--radius-lg);border:1px solid var(--divider);display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:6px;align-items:center">
+          <button id="snd-radio-builtin" class="btn btn-ghost btn-xs" style="flex-shrink:0;width:22px;height:22px;padding:0;font-size:12px;border-radius:50%;color:var(--primary);border:1px solid var(--border)" onclick="selectSoundGroup('builtin')" title="Use built-in sounds">▶</button>
+          <select class="select" id="sel-sound" onchange="selectSoundGroup('builtin');lsSave({soundPreset:this.value})" style="flex:1">
+            <option value="click1.wav">🖱 Click 1</option>
+            <option value="click2.wav">🖱 Click 2</option>
+            <option value="clickangry.wav">😤 Angry Click</option>
+            <option value="roboclick.wav">🤖 Robo Click</option>
+            <option value="peanutdrop.wav">🥜 Peanut Drop</option>
+            <option value="pop1.wav">💧 Pop 1</option>
+            <option value="pop2.wav">💧 Pop 2</option>
+            <option value="tap1.wav">👆 Tap 1</option>
+            <option value="waterdrop.wav">💦 Water Drop</option>
+            <option value="vineboom.wav">💥 Vine Boom</option>
+            <option value="__piano__">🎹 Piano (random)</option>
+          </select>
+          <button class="btn btn-ghost btn-xs" onclick="previewSound(document.getElementById('sel-sound').value)" title="Preview" style="flex-shrink:0">▶</button>
+        </div>
+        <div id="customSoundsBlock" style="display:none;gap:6px;align-items:center">
+          <button id="snd-radio-custom" class="btn btn-ghost btn-xs" style="flex-shrink:0;width:22px;height:22px;padding:0;font-size:12px;border-radius:50%;color:var(--muted);border:1px solid var(--border)" onclick="selectSoundGroup('custom')" title="Use custom sounds">▶</button>
+          <select class="select" id="sel-custom-sound" onchange="selectSoundGroup('custom');lsSave({soundPreset:this.value})" style="flex:1"></select>
+          <button class="btn btn-ghost btn-xs" onclick="previewSound(document.getElementById('sel-custom-sound').value)" title="Preview" style="flex-shrink:0">▶</button>
+        </div>
+        <div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="soundUploadInput" multiple accept=".wav,.mp3,.ogg,.flac" style="display:none" onchange="uploadSounds(this)">
+            <button class="btn btn-ghost btn-xs" onclick="document.getElementById('soundUploadInput').click()">⬆ Upload sounds</button>
+            <span id="soundUploadStatus" style="font-size:10px;color:var(--muted)"></span>
+          </div>
+        </div>
+        <div>
+          <div class="label" style="margin-bottom:4px">Pitch range (playback speed multiplier)</div>
+          <div class="form-row">
+            <div><div class="label">Min</div><div class="input-wrap"><input type="number" class="input" id="in-pitch-min" value="0.9" min="0.1" max="4" step="0.05" oninput="lsSave({pitchMin:+this.value})"><span class="suf">×</span></div></div>
+            <div><div class="label">Max</div><div class="input-wrap"><input type="number" class="input" id="in-pitch-max" value="1.1" min="0.1" max="4" step="0.05" oninput="lsSave({pitchMax:+this.value})"><span class="suf">×</span></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="label" style="margin-bottom:4px">Loudness range</div>
+          <div class="form-row">
+            <div><div class="label">Min</div><div class="input-wrap"><input type="number" class="input" id="in-vol-min" value="0.6" min="0" max="1" step="0.05" oninput="lsSave({volMin:+this.value})"><span class="suf">vol</span></div></div>
+            <div><div class="label">Max</div><div class="input-wrap"><input type="number" class="input" id="in-vol-max" value="1.0" min="0" max="1" step="0.05" oninput="lsSave({volMax:+this.value})"><span class="suf">vol</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="t-name" data-i18n="focus_label">Stop on focus loss</span>
+          <span class="t-desc" data-i18n="focus_desc">Auto-stop when window loses focus</span>
+        </div>
+        <label class="tog"><input type="checkbox" id="tog-focus" onchange="lsSave({stopOnBlur:this.checked})"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="t-name" data-i18n="cooldown_label">Restart cooldown</span>
+          <span class="t-desc" data-i18n="cooldown_desc">Delay before clicking can restart after stop</span>
+        </div>
+        <label class="tog"><input type="checkbox" id="tog-cooldown" checked onchange="lsSave({stopCooldownOn:this.checked});toggleCooldownPanel(this.checked)"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+      <div id="cooldownPanel" style="padding:6px 0 2px 0">
+        <div class="slider-wrap">
+          <div class="slider-hd">
+            <span class="label" style="margin:0" data-i18n="cooldown_sec_label">Cooldown duration</span>
+            <span class="slider-val" id="sv-cooldown">3s</span>
+          </div>
+          <input type="range" class="slider" id="sl-cooldown" min="1" max="10" value="3"
+            oninput="document.getElementById('sv-cooldown').textContent=this.value+'s';lsSave({stopCooldownSec:+this.value})">
+        </div>
+      </div>
+      <!-- Restart Hotkey -->
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="t-name">Restart hotkey</span>
+          <span class="t-desc">Hotkey to restart clicking (default: off)</span>
+        </div>
+        <label class="tog"><input type="checkbox" id="tog-restart-hk" onchange="onRestartHkToggle(this.checked);lsSave({restartHkOn:this.checked})"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+      <div id="restartHkPanel" style="display:none;flex-direction:column;gap:6px;padding:8px;background:var(--surface-off);border-radius:var(--radius-md);border:1px solid var(--divider)">
+        <div style="display:flex;gap:4px;align-items:center">
+          <select class="select" id="sel-restart-hotkey" onchange="cfgSend({restart_hotkey:this.value});fetch(API+'/rebind_hotkeys',{method:'POST'})" style="flex:1;min-width:80px">
+            <option value="">-- off --</option>
+            <option value="f5">F5</option><option value="f6">F6</option><option value="f7">F7</option>
+            <option value="f8">F8</option><option value="f9">F9</option><option value="f10">F10</option>
+            <option value="f11">F11</option><option value="f12">F12</option>
+            <option value="mouse4">Mouse4</option><option value="mouse5">Mouse5</option>
+          </select>
+          <button class="btn btn-ghost btn-xs" id="captureRestartHotkeyBtn" onclick="startHotkeyCapture('restart')">&#9000; Capture</button>
+        </div>
+        <div class="toggle-row" style="padding:0">
+          <div class="toggle-info">
+            <span class="t-name" style="font-size:10px">Bypass cooldown</span>
+            <span class="t-desc">Hotkey ignores restart cooldown timer</span>
+          </div>
+          <label class="tog"><input type="checkbox" id="tog-restart-bypass" onchange="cfgSend({restart_bypass_cooldown:this.checked});lsSave({restartBypassCooldown:this.checked})"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="t-name" data-i18n="jitter_label">Position jitter</span><span class="t-desc" data-i18n="jitter_desc">±N px noise</span></div>
+        <label class="tog"><input type="checkbox" id="tog-jitter" onchange="cfgSend({jitter:this.checked?2:0})"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="t-name">Minimize to tray on close</span>
+          <span class="t-desc">Hide window to system tray instead of quitting</span>
+        </div>
+        <label class="tog"><input type="checkbox" id="tog-mintray" onchange="lsSave({minToTray:this.checked});document.getElementById('minimizeTrayBtn').style.display=this.checked?'flex':'none';fetch(API+'/set_mintray',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:this.checked})})"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+      </div>
+      <div>
+        <div class="label">Language / Мова</div>
+        <select class="select" id="sel-lang" onchange="setLang(this.value)">
+          <option value="en">🇬🇧 English</option>
+          <option value="uk">🇺🇦 Українська</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="fr">🇫🇷 Français</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="ar">🇸🇦 العربية</option>
+          <option value="ko">🇰🇷 한국어</option>
+          <option value="it">🇮🇹 Italiano</option>
+          <option value="tr">🇹🇷 Türkçe</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="ja">🇯🇵 日本語</option>
+          <option value="pl">🇵🇱 Polski</option>
+          <option value="pt">🇵🇹 Português</option>
+          <option value="be">🇧🇾 Беларуская</option>
+        </select>
+      </div>
+      <!-- Export / Import all settings -->
+      <div style="border-top:1px solid var(--border);padding-top:var(--space-3);margin-top:var(--space-2)">
+        <div class="label" data-i18n="data_label" style="margin-bottom:6px">Data</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-xs" onclick="exportAllSettings()" style="gap:5px;padding:5px 10px">
+            <i data-lucide="download" style="width:12px;height:12px"></i> <span data-i18n="export_lbl">Export settings</span>
+          </button>
+          <button class="btn btn-ghost btn-xs" onclick="importAllSettings()" style="gap:5px;padding:5px 10px">
+            <i data-lucide="upload" style="width:12px;height:12px"></i> <span data-i18n="import_lbl">Import settings</span>
+          </button>
+        </div>
+      </div>
+      <div>
+        <div class="label" data-i18n="move_dur_label">Move duration</div>
+        <div class="input-wrap"><input type="number" class="input" id="in-movedur" value="0.05" min="0" max="1" step="0.01" oninput="cfgSend({move_duration:+this.value})"><span class="suf">s</span></div>
+      </div>
+      <div>
+        <div class="label" data-i18n="hotkey_label">Hotkey (toggle)</div>
+        <div style="display:flex;gap:6px;align-items:center">
+        <select class="select" id="sel-hotkey" onchange="cfgSend({hotkey:this.value});updateHotkeyDisplay();fetch(API+'/rebind_hotkeys',{method:'POST'})">
+          <option value="f1">F1</option>
+          <option value="f2">F2</option>
+          <option value="f3">F3</option>
+          <option value="f4">F4</option>
+          <option value="f5">F5</option>
+          <option value="f6" selected>F6</option>
+          <option value="f7">F7</option>
+          <option value="f8">F8</option>
+          <option value="f9">F9</option>
+          <option value="f10">F10</option>
+          <option value="f11">F11</option>
+          <option value="f12">F12</option>
+          <option value="pause">Pause</option>
+          <option value="insert">Insert</option>
+          <option value="home">Home</option>
+          <option value="end">End</option>
+          <option value="page up">Page Up</option>
+          <option value="page down">Page Down</option>
+          <option value="num lock">Num Lock</option>
+          <option value="scroll lock">Scroll Lock</option>
+          <option value="caps lock">Caps Lock</option>
+          <option value="tab">Tab</option>
+          <option value="ctrl+f6">Ctrl+F6</option>
+          <option value="ctrl+f7">Ctrl+F7</option>
+          <option value="ctrl+f8">Ctrl+F8</option>
+          <option value="ctrl+f9">Ctrl+F9</option>
+          <option value="ctrl+shift+f6">Ctrl+Shift+F6</option>
+          <option value="alt+f6">Alt+F6</option>
+          <option value="alt+f7">Alt+F7</option>
+          <option value="alt+f8">Alt+F8</option>
+          <option value="ctrl+space">Ctrl+Space</option>
+          <option value="ctrl+alt+s">Ctrl+Alt+S</option>
+          <option value="ctrl+alt+c">Ctrl+Alt+C</option>
+        </select>
+        <button class="btn btn-ghost btn-xs" id="captureHotkeyBtn" onclick="startHotkeyCapture()" title="Press any key to set as hotkey" style="white-space:nowrap;flex-shrink:0">⌨ Capture</button>
+        </div>
+      </div>
+      <div>
+        <div class="label" data-i18n="set_pos_hotkey_label">Set Position hotkey</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <select class="select" id="sel-pos-hotkey" onchange="cfgSend({set_pos_hotkey:this.value});fetch(API+'/rebind_hotkeys',{method:'POST'});updateSavePosHotkeyDisplay()" style="flex:1;min-width:80px">
+          <option value="f8" selected>F8</option>
+          <option value="f1">F1</option>
+          <option value="f2">F2</option>
+          <option value="f3">F3</option>
+          <option value="f4">F4</option>
+          <option value="f5">F5</option>
+          <option value="f7">F7</option>
+          <option value="f9">F9</option>
+          <option value="f10">F10</option>
+          <option value="f11">F11</option>
+          <option value="f12">F12</option>
+          <option value="pause">Pause</option>
+          <option value="insert">Insert</option>
+          <option value="home">Home</option>
+          <option value="end">End</option>
+          <option value="ctrl+f8">Ctrl+F8</option>
+          <option value="alt+f8">Alt+F8</option>
+        </select>
+        <button class="btn btn-ghost btn-xs" id="capturePosHotkeyBtn" onclick="startHotkeyCapture('setpos')" title="Press any key to set as position save hotkey" style="white-space:nowrap;flex-shrink:0">⌨ Capture</button>
+        <label class="tog" title="Enable/disable set position hotkey" style="flex-shrink:0">
+          <input type="checkbox" id="tog-pos-hotkey" checked onchange="cfgSend({set_pos_hotkey_on:this.checked});fetch(API+'/rebind_hotkeys',{method:'POST'})">
+          <span class="tog-track"></span><span class="tog-thumb"></span>
+        </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</aside>
+
+<main class="main-panel">
+  <!-- Offline banner -->
+  <div class="offline-banner" id="offlineBanner">
+    <i data-lucide="wifi-off" style="width:16px;height:16px;flex-shrink:0"></i>
+    <div><strong>Connecting to backend…</strong> Starting up, please wait a moment.</div>
+  </div>
+
+  <!-- Status card -->
+  <div class="status-card" id="statusCard">
+    <div class="status-icon" id="statusIcon">
+      <i data-lucide="mouse-pointer-2" style="width:28px;height:28px"></i>
+    </div>
+    <div class="status-info">
+      <div class="status-label" data-i18n="status_label">Status</div>
+      <div class="status-state" id="statusText">Idle</div>
+      <div class="status-sub" id="statusSub">Press Start or <kbd class="kbd" id="hotkeyBadge">F6</kbd> to begin</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val" id="st-session">0</div><div class="stat-label" data-i18n="this_run">This Run</div></div>
+      <div class="stat"><div class="stat-val" id="st-total">0</div><div class="stat-label" data-i18n="total">Total</div></div>
+      <div class="stat"><div class="stat-val" id="st-cps">0.0</div><div class="stat-label" data-i18n="cps">CPS</div></div>
+    </div>
+  </div>
+
+  <!-- Coord bar -->
+  <div class="coord-bar" id="coordBar">
+    <i data-lucide="map-pin" style="width:16px;height:16px;color:var(--primary);flex-shrink:0"></i>
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:150px">
+      <span class="coord-live" id="coordLive">X: — &nbsp; Y: —</span>
+      <span class="coord-saved" id="coordSaved">Saved: —</span>
+    </div>
+    <span class="coord-instructions"><span data-i18n="hover_anywhere">Hover anywhere</span> · <kbd class="kbd" id="savePosHkInstr" style="font-size:9px">F8</kbd> or <strong>Save Pos</strong> to fix target</span>
+    <button class="btn btn-save-pos btn-xs" id="savePosBtn" onclick="savePosition()">
+      <i data-lucide="bookmark" style="width:11px;height:11px"></i> Save Pos <kbd class="kbd" id="savePosHkBadge" style="font-size:9px;margin-left:2px;background:rgba(0,0,0,.15);border-color:rgba(0,0,0,.2);color:inherit">F8</kbd>
+    </button>
+    <button class="btn btn-ghost btn-xs" onclick="captureCurrentPos()">
+      <i data-lucide="copy" style="width:11px;height:11px"></i> Copy
+    </button>
+    <button class="btn btn-primary btn-xs" onclick="addStepFromCursor()">
+      <i data-lucide="plus" style="width:11px;height:11px"></i> Add to seq
+    </button>
+  </div>
+
+  <!-- Main button -->
+  <button class="main-btn" id="mainBtn" onclick="toggle()">
+    <i data-lucide="play" style="width:20px;height:20px" id="mainBtnIcon"></i>
+    <span id="mainBtnText">Start Clicking</span>
+    <kbd class="kbd" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.8)" id="mainBtnKbd">F6</kbd>
+  </button>
+
+  <!-- Sequence -->
+  <div class="log-panel" id="seqPanel">
+    <!-- Profile bar -->
+    <div style="display:flex;align-items:center;gap:6px;padding:var(--space-3) var(--space-4) 0;flex-wrap:wrap">
+      <i data-lucide="layers" style="width:13px;height:13px;color:var(--primary);flex-shrink:0"></i>
+      <span style="font-size:var(--text-xs);font-weight:700;color:var(--text);white-space:nowrap" data-i18n="profiles_label">Profiles</span>
+      <div id="seqProfileTabs" style="display:flex;gap:4px;flex-wrap:wrap;flex:1"></div>
+      <button class="btn btn-ghost btn-xs" title="New profile" onclick="seqProfileNew()">
+        <i data-lucide="folder-plus" style="width:11px;height:11px"></i>
+      </button>
+    </div>
+    <!-- Header -->
+    <div class="log-hd" style="margin-top:6px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:var(--text-xs);font-weight:600">
+        <i data-lucide="list-ordered" style="width:14px;height:14px;color:var(--primary)"></i>
+        <span id="seqProfileNameLabel">Click Sequence</span>
+        <span class="badge badge-blue" id="seqCountBadge">0 steps</span>
+        <!-- active toggle -->
+        <label class="tog" style="margin-left:4px;flex-shrink:0" title="Enable/disable this profile">
+          <input type="checkbox" id="tog-seqActive" checked onchange="seqProfileToggleActive(this.checked)">
+          <span class="tog-track"></span><span class="tog-thumb"></span>
+        </label>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-xs" onclick="addBlankStep()"><i data-lucide="plus" style="width:11px;height:11px"></i> Add</button>
+        <button class="btn btn-ghost btn-xs" onclick="seqProfileRename()"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="clearSeq()"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="exportSeq()"><i data-lucide="download" style="width:11px;height:11px"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="importSeq()"><i data-lucide="upload" style="width:11px;height:11px"></i></button>
+        <button class="btn btn-ghost btn-xs" id="seqExpandBtn" onclick="togglePanelExpand('seqWrap','seqExpandBtn')" title="Expand/Collapse"><i data-lucide="maximize-2" style="width:11px;height:11px"></i></button>
+      </div>
+    </div>
+    <div id="seqWrap" style="overflow-x:auto;overflow-y:auto;padding:0 var(--space-2) var(--space-2)">
+      <table class="seq-table">
+        <thead><tr><th></th><th>#</th><th>Label</th><th>X</th><th>Y</th><th data-i18n="button_label">Button</th><th>Delay(s)</th><th>On</th><th></th></tr></thead>
+        <tbody id="seqBody"></tbody>
+      </table>
+      <div id="seqEmpty" style="text-align:center;padding:var(--space-6);font-size:var(--text-xs);color:var(--faint)">
+        No steps — hover target, press F8, then "Add to seq"
+      </div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="log-panel">
+    <div class="log-hd">
+      <div style="display:flex;align-items:center;gap:8px;font-size:var(--text-xs);font-weight:600">
+        <i data-lucide="terminal" style="width:14px;height:14px;color:var(--primary)"></i>
+        <span data-i18n="log">Activity Log</span>
+        <span class="badge badge-blue" id="logBadge">0</span>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-xs" id="logExpandBtn" onclick="togglePanelExpand('logBody','logExpandBtn')" title="Expand/Collapse"><i data-lucide="maximize-2" style="width:11px;height:11px"></i></button>
+        <button class="btn-icon btn-ghost btn" onclick="clearLog()"><i data-lucide="trash-2" style="width:12px;height:12px"></i></button>
+      </div>
+    </div>
+    <div class="log-body" id="logBody"></div>
+  </div>
+</main>
+</div>
+</div>
+<div class="toast-cont" id="toastCont"></div>
+
+<script>
+const API = 'http://localhost:5000';
+const LS  = 'ac_lexi_v2';
+
+let connected=false, running=false, curX=0, curY=0;
+let sequence=[], logCount=0;
+let lastClickTs=null;
+let _vizLastT=0;
+
+async function pollViz(){
+  if(!running) return;
+  if(!lsGet('viz',false) && !lsGet('sound',false)) return;
+  try{
+    const r=await fetch(API+'/clicks_since?t='+_vizLastT);
+    if(!r.ok) return;
+    const j=await r.json();
+    const evts=j.events||[];
+    if(evts.length>0){
+      _vizLastT=evts[evts.length-1].t;
+      if(lsGet('viz',false)) evts.forEach(e=>spawnDot(e.x,e.y));
+      if(lsGet('sound',false)) evts.forEach(()=>playTick());
+    }
+  }catch(e){}
+}
+let audioCtx=null;
+const PIANO_SOUNDS=['pianoa3.wav', 'pianob3.wav', 'pianof4.wav', 'pianog4.wav', 'pianog4_2.wav'];
+
+// ── Sound engine ─────────────────────────────────────────────────────────────
+function getAudioCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+
+function getRandInRange(min,max){return min+(Math.random()*(max-min));}
+
+const _bufCache={};
+let _lastSndMs=0;
+
+async function _loadBuf(filename){
+  if(_bufCache[filename]) return _bufCache[filename];
+  try{
+    const resp=await fetch(API+'/sounds/'+encodeURIComponent(filename));
+    if(!resp.ok) throw new Error('404');
+    const ab=await resp.arrayBuffer();
+    const ctx=getAudioCtx();
+    const buf=await ctx.decodeAudioData(ab);
+    _bufCache[filename]=buf;
+    return buf;
+  }catch(e){ return null; }
+}
+
+function _playBuf(buf,vol,rate){
+  try{
+    const ctx=getAudioCtx();
+    if(ctx.state==='suspended') ctx.resume().catch(()=>{});
+    const src=ctx.createBufferSource();
+    const gain=ctx.createGain();
+    src.buffer=buf;
+    src.playbackRate.value=Math.max(0.1,Math.min(16,rate));
+    gain.gain.value=Math.max(0,Math.min(1,vol));
+    src.connect(gain);gain.connect(ctx.destination);
+    src.start();
+  }catch(e){}
+}
+
+function _resumeAudioCtx(){
+  if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
+}
+document.addEventListener('click',_resumeAudioCtx,{passive:true});
+document.addEventListener('keydown',_resumeAudioCtx,{passive:true});
+
+function playTick(){
+  if(!lsGet('sound',false))return;
+  const now=performance.now();
+  if(now-_lastSndMs<30)return;
+  _lastSndMs=now;
+  try{
+    let preset=lsGet('soundPreset','click1.wav');
+    if(preset==='__piano__') preset=PIANO_SOUNDS[Math.floor(Math.random()*PIANO_SOUNDS.length)];
+    const pMin=parseFloat(lsGet('pitchMin',0.9)),pMax=parseFloat(lsGet('pitchMax',1.1));
+    const vMin=parseFloat(lsGet('volMin',0.6)),  vMax=parseFloat(lsGet('volMax',1.0));
+    const rate=pMin+Math.random()*(pMax-pMin);
+    const vol =vMin+Math.random()*(vMax-vMin);
+    if(_bufCache[preset]){
+      _playBuf(_bufCache[preset],vol,rate);
+    } else {
+      _loadBuf(preset).then(buf=>{ if(buf) _playBuf(buf,vol,rate); else playOscTick(); });
+    }
+  }catch(e){playOscTick();}
+}
+
+async function preloadAllSounds(){
+  const builtin=['click1.wav','click2.wav','clickangry.wav','roboclick.wav',
+    'peanutdrop.wav','pop1.wav','pop2.wav','tap1.wav','waterdrop.wav','vineboom.wav',
+    'pianoa3.wav','pianob3.wav','pianof4.wav','pianog4.wav','pianog4_2.wav'];
+  for(const f of builtin){ _loadBuf(f); }
+}
+function playOscTick(){
+  try{
+    const ctx=getAudioCtx();
+    const osc=ctx.createOscillator();
+    const g=ctx.createGain();
+    osc.connect(g);g.connect(ctx.destination);
+    osc.type='sine';osc.frequency.setValueAtTime(1200,ctx.currentTime);
+    g.gain.setValueAtTime(.12,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.04);
+    osc.start();osc.stop(ctx.currentTime+0.04);
+  }catch(e){}
+}
+
+function previewSound(preset){
+  try{
+    let fn=preset;
+    if(fn==='__piano__') fn=PIANO_SOUNDS[Math.floor(Math.random()*PIANO_SOUNDS.length)];
+    const vol=parseFloat(lsGet('volMax',1.0));
+    if(_bufCache[fn]){
+      _playBuf(_bufCache[fn],vol,1.0);
+    } else {
+      _loadBuf(fn).then(buf=>{ if(buf) _playBuf(buf,vol,1.0); else playOscTick(); });
+    }
+  }catch(e){playOscTick();}
+}
+
+async function loadCustomSounds(){
+  try{
+    const r=await fetch(API+'/sounds/list');
+    const j=await r.json();
+    const uploaded=j.uploaded||[];
+    const block=document.getElementById('customSoundsBlock');
+    const sel=document.getElementById('sel-custom-sound');
+    if(uploaded.length>0&&block&&sel){
+      block.style.display='flex';
+      sel.innerHTML='';
+      uploaded.forEach(f=>{
+        const opt=document.createElement('option');
+        opt.value=f;opt.textContent=f;sel.appendChild(opt);
+      });
+      // restore saved custom selection
+      const saved=lsGet('soundPreset','click1.wav');
+      if(uploaded.includes(saved))sel.value=saved;
+    }
+    // Preload any newly found custom sounds into AudioBuffer cache
+    (j.uploaded||[]).forEach(f=>_loadBuf(f));
+  }catch(e){}
+}
+
+async function uploadSounds(input){
+  const files=input.files;
+  if(!files||files.length===0)return;
+  const status=document.getElementById('soundUploadStatus');
+  if(status)status.textContent='Uploading...';
+  try{
+    const fd=new FormData();
+    Array.from(files).forEach(f=>fd.append('files',f));
+    const r=await fetch(API+'/sounds/upload',{method:'POST',body:fd});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    if(status)status.textContent=j.saved&&j.saved.length?'✓ '+j.saved.join(', '):'Upload failed';
+    // Invalidate AudioBuffer cache for newly uploaded files
+    j.saved&&j.saved.forEach(f=>{delete _bufCache[f];});
+    await loadCustomSounds();
+    selectSoundGroup(_soundGroup);
+  }catch(e){if(status)status.textContent='Error: '+e.message;}
+  input.value='';
+}
+
+function toggleSoundPanel(on){
+  const p=document.getElementById('soundPanel');
+  if(p)p.style.display=on?'flex':'none';
+}
+
+let _soundGroup='builtin';
+function selectSoundGroup(group){
+  _soundGroup=group;
+  lsSave({soundGroup:group});
+  const rb=document.getElementById('snd-radio-builtin');
+  const rc=document.getElementById('snd-radio-custom');
+  if(rb) rb.style.color=group==='builtin'?'var(--primary)':'var(--muted)';
+  if(rc) rc.style.color=group==='custom'?'var(--primary)':'var(--muted)';
+  if(group==='builtin'){
+    const sel=document.getElementById('sel-sound');
+    if(sel) lsSave({soundPreset:sel.value});
+  } else {
+    const sel=document.getElementById('sel-custom-sound');
+    if(sel&&sel.value) lsSave({soundPreset:sel.value});
+  }
+}
+
+function restoreSoundPrefs(){
+  const preset=lsGet('soundPreset','click1.wav');
+  const sel=document.getElementById('sel-sound');
+  if(sel){
+    // Check if it's a custom sound
+    const isBuiltin=[...sel.options].some(o=>o.value===preset);
+    if(isBuiltin)sel.value=preset;
+  }
+  const pMin=document.getElementById('in-pitch-min');const pMax=document.getElementById('in-pitch-max');
+  const vMin=document.getElementById('in-vol-min');const vMax=document.getElementById('in-vol-max');
+  if(pMin)pMin.value=lsGet('pitchMin',0.9);
+  if(pMax)pMax.value=lsGet('pitchMax',1.1);
+  if(vMin)vMin.value=lsGet('volMin',0.6);
+  if(vMax)vMax.value=lsGet('volMax',1.0);
+  const soundOn=lsGet('sound',false);
+  toggleSoundPanel(soundOn);
+  _soundGroup=lsGet('soundGroup','builtin');
+  loadCustomSounds().then(()=>selectSoundGroup(_soundGroup));
+}
+
+// ── Click visualizer canvas ────────────────────────────────────────────────
+const canvas=document.getElementById('clickCanvas');
+const ctx2d=canvas.getContext('2d');
+let dots=[];
+let _mouseVX=0,_mouseVY=0; // JS-tracked viewport mouse position
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+window.addEventListener('resize',resizeCanvas);resizeCanvas();
+// Track actual mouse position in viewport coords — 100% accurate, no offset math
+document.addEventListener('mousemove',e=>{_mouseVX=e.clientX;_mouseVY=e.clientY;});
+
+let _dynOffsetX=0,_dynOffsetY=0,_dynOffsetSamples=0;
+function _updateDynOffset(){
+  if(typeof curX==='number'&&curX>0&&_mouseVX>0){
+    const ox=curX-_mouseVX,oy=curY-_mouseVY;
+    if(_dynOffsetSamples===0){_dynOffsetX=ox;_dynOffsetY=oy;}
+    else{_dynOffsetX=_dynOffsetX*0.7+ox*0.3;_dynOffsetY=_dynOffsetY*0.7+oy*0.3;}
+    _dynOffsetSamples++;
+  }
+}
+document.addEventListener('mousemove',()=>_updateDynOffset(),{passive:true});
+setInterval(_updateDynOffset,500);
+function spawnDot(sx,sy){
+  const x=(sx!=null)?sx-_dynOffsetX:_mouseVX;
+  const y=(sy!=null)?sy-_dynOffsetY:_mouseVY;
+  dots.push({x,y,r:0,maxR:36,alpha:1.0});
+}
+function animateDots(){
+  ctx2d.clearRect(0,0,canvas.width,canvas.height);
+  dots=dots.filter(d=>d.alpha>0.01);
+  const priHex=(getComputedStyle(document.documentElement).getPropertyValue('--primary')||'#03DAC6').trim();
+  function h2r(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+  const [cr,cg,cb]=(priHex.startsWith('#')&&priHex.length===7)?h2r(priHex):[3,218,198];
+  const col=`${cr},${cg},${cb}`;
+  dots.forEach(d=>{
+    d.r+=2.2;d.alpha-=0.038;
+    // outer ring
+    ctx2d.beginPath();ctx2d.arc(d.x,d.y,d.r,0,Math.PI*2);
+    ctx2d.strokeStyle=`rgba(${col},${d.alpha})`;
+    ctx2d.lineWidth=2;ctx2d.stroke();
+    // second ring
+    if(d.r>8){
+      ctx2d.beginPath();ctx2d.arc(d.x,d.y,d.r*0.55,0,Math.PI*2);
+      ctx2d.strokeStyle=`rgba(${col},${d.alpha*0.5})`;
+      ctx2d.lineWidth=1.5;ctx2d.stroke();
+    }
+    // center dot
+    ctx2d.beginPath();ctx2d.arc(d.x,d.y,4,0,Math.PI*2);
+    ctx2d.fillStyle=`rgba(${col},${Math.min(d.alpha*2,1)})`;
+    ctx2d.fill();
+  });
+  requestAnimationFrame(animateDots);
+}
+animateDots();
+
+// ── localStorage ───────────────────────────────────────────────────────────
+function lsSave(patch){try{const c=JSON.parse(localStorage.getItem(LS)||'{}');Object.assign(c,patch);localStorage.setItem(LS,JSON.stringify(c));}catch(e){}}
+function lsGet(k,def){try{const c=JSON.parse(localStorage.getItem(LS)||'{}');return k in c?c[k]:def;}catch(e){return def;}}
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+// ── Theme ────────────────────────────────────────────────────────────────────
+const CUSTOM_THEMES=[
+  {id:'dark',           label:'🌑 Dark',              bg:'#121212',text:'#E0E0E0',pri:'#03DAC6',surf:'#1E1E1E'},
+  {id:'darker',         label:'☄️ Blue Meteor',      bg:'#040C1A',text:'#C8E0FF',pri:'#4AA8FF',surf:'#0A1628'},
+  {id:'darkpurple',     label:'🟣 Dark Purple',        bg:'#14001F',text:'#E9D8FD',pri:'#9F7AEA',surf:'#1F102A'},
+  {id:'darkpurplelight',label:'🟣 Dark Purple Light',  bg:'#1E1033',text:'#F2E9FE',pri:'#C4A5FF',surf:'#271242'},
+  {id:'sakura', label:'🌸 Sakura',         bg:'#F3E8F1',text:'#5C2D4A',pri:'#F8BBD9',surf:'#F1D4E5'},
+  {id:'sakura1', label:'🌸 Sakuranbo', bg:'#FFF5F8', text:'#4A2C3A', pri:'#FF8FB7', surf:'#FFE1EC'},
+{id:'sakura2', label:'🌸 Sakurantix', bg:'#1A0F14', text:'#FFD6E7', pri:'#FF6FA3', surf:'#2A1620'},
+{id:'sakura3', label:'🌸 Sakuramber', bg:'#FFFBFC', text:'#5A3A4A', pri:'#FF9BCB', surf:'#F8E3EC'},
+{id:'sakura4', label:'🌸 Sakuralex', bg:'#FAF3F6', text:'#3E2A35', pri:'#E85C8A', surf:'#F2D7E2'},
+  {id:'midnight',       label:'🌙 Midnight Blue',      bg:'#020817',text:'#E0F2FE',pri:'#38BDF8',surf:'#020617'},
+  {id:'midnightdark',   label:'🌌 Midnight',           bg:'#0B1020',text:'#E0ECFF',pri:'#4A90E2',surf:'#141A33'},
+  {id:'forest', label:'🌲 Forest',         bg:'#022C22',text:'#ECFDF5',pri:'#34D399',surf:'#064E3B'},
+  {id:'jungle', label:'🌿 Jungle',         bg:'#062821',text:'#E9F5F0',pri:'#00C896',surf:'#0A3A30'},
+  {id:'maya_temple', label:'🦖 Maya Temple', bg:'#101612', text:'#E6DFC8', pri:'#D1B15A', surf:'#1E2A24'},
+  {id:'nord',           label:'❄️ Nord',               bg:'#2E3440',text:'#E5E9F0',pri:'#88C0D0',surf:'#3B4252'},
+  {id:'desert', label:'🏜️ Golden Desert', bg:'#F4D28A', text:'#5A3E00', pri:'#E6A800', surf:'#EFD8A3'},
+  {id:'desert2', label:'🌅 Golden Desert Sunset', bg:'#D9A441', text:'#3E2A00', pri:'#FFB300', surf:'#E6B85C'},
+  {id:'amber', label:'🔥 Ember', bg:'#3B1400', text:'#FFE2C2', pri:'#FF6A00', surf:'#4A1A00'},
+  {id:'amber2', label:'🌋 Molten Lava', bg:'#2F0F00', text:'#FFE8CC', pri:'#FF4500', surf:'#3D1400'},
+{id:'amber3', label:'✨ Elegantix', bg:'#FFFFFF', text:'#2E2118', pri:'#F28C28', surf:'#F7E7D6'},
+  {id:'panda',          label:'🐼 Panda',              bg:'#1C1C1C',text:'#E8E8E8',pri:'#5AC85A',surf:'#2A2A2A'},
+  {id:'darkula',        label:'🧛 Darkula',            bg:'#110005',text:'#F5C6C6',pri:'#CC0000',surf:'#1E0008'},
+  {id:'cyberpunk',      label:'💻 Cyberpunk',          bg:'#0A0015',text:'#E8F0FF',pri:'#FF00FF',surf:'#1A0033'},
+  {id:'solarized',      label:'☀️ Solarized',          bg:'#002B36',text:'#EEE8D5',pri:'#B58900',surf:'#073642'},
+  {id:'japanese_temple', label:'🏯 Japanese Temple', bg:'#1C1A17', text:'#E9E1D2', pri:'#C8A96A', surf:'#2A2620'},
+  {id:'bazaar', label:'🕌 Bazaar', bg:'#2A1A10', text:'#FFE6C7', pri:'#D4A017', surf:'#3A2418'},
+  {id:'roman_empire', label:'🏛️ Roman Empire', bg:'#1E1F22', text:'#E6E2D6', pri:'#BFA06A', surf:'#2C2E33'},
+  {id:'cyber_tokyo', label:'🏮 Cyber Tokyo', bg:'#0A0F1A', text:'#D6E4FF', pri:'#FF3D81', surf:'#141C2E'},
+  {id:'imperial_china', label:'🐉 Imperial China', bg:'#101814', text:'#E8F5E9', pri:'#D4AF37', surf:'#1C2A24'},
+  {id:'nordic_village', label:'🏔️ Nordic Village', bg:'#0F1B22', text:'#EAF4FF', pri:'#7FB3D5', surf:'#162833'},
+  {id:'polynesia', label:'🌴 Polynesia', bg:'#0E2A2A', text:'#E6FFF7', pri:'#00C2A8', surf:'#164A45'},
+  {id:'ottoman_desert', label:'🏜️ Ottoman Desert', bg:'#2A1E12', text:'#FFE8C2', pri:'#C9A227', surf:'#3A2A1C'},
+  {id:'indian_temple', label:'🛕 Indian Temple', bg:'#1F1410', text:'#FFE9D6', pri:'#E0A106', surf:'#33201A'},
+{id:'ukraine_vyshyvanka', label:'👰👗 Vyshyvanka', bg:'#FFFFFF', text:'#3A2A24', pri:'#D72638', surf:'#F6F0EA'},
+{id:'ukraine_vyshyvanka1', label:'🤵👗 Vyshyvanochka', bg:'#050505', text:'#EDE4DA', pri:'#D72638', surf:'#151515'},
+  {id:'ukraine_carpathian', label:'🏔️ Carpathians', bg:'#0F1C17', text:'#E6F2EC', pri:'#5DA271', surf:'#1D2E27'},
+  {id:'ukraine_cossack', label:'🔥 Cossack Fire', bg:'#1A0F0F', text:'#FFE8D6', pri:'#FF6B2C', surf:'#2A1515'},
+{id:'ukraine', label:'💙💛 Double Power', bg:'#041A3A', text:'#FFF2D1', pri:'#FFD24A', surf:'#0A2F5C'},
+{id:'ukraine2', label:'💎💛 Golden Topaz', bg:'#0A1F2E', text:'#FFF3D6', pri:'#F2C14E', surf:'#163A52'},
+  {id:'sunrise', label:'🌅 Sunrise', bg:'#FFF1E6', text:'#4A2E2A', pri:'#FF8A65', surf:'#FFE0D2'},
+  {id:'sunrise2', label:'🌄 Anime Sky', bg:'#FFE7D6', text:'#3E2A26', pri:'#FF6F61', surf:'#FFD1B8'},
+  {id:'sunrise3', label:'🌻 Premiale', bg:'#FFF3E0', text:'#4A342E', pri:'#FFB347', surf:'#FFE1B2'},
+  {id:'sunset', label:'🌇 Sunset', bg:'#2B140A', text:'#FFE0C7', pri:'#FF7A2F', surf:'#3A1C10'},
+  {id:'sunset2', label:'🥮 Sunsety', bg:'#3A1A0F', text:'#FFE6CC', pri:'#FF5A1F', surf:'#4A2414'},
+  {id:'sunset3', label:'🌆 Sunseting', bg:'#FFF0E6', text:'#4A2B22', pri:'#FF8C42', surf:'#FFD8C2'},
+  {id:'moon',           label:'🌕 Moon',               bg:'#0A0F1A',text:'#C8DCF0',pri:'#7EC8E3',surf:'#1A2338'},
+  {id:'crescent',       label:'🌗 Crescent Moon',      bg:'#1A0505',text:'#F5E1E2',pri:'#D32F2F',surf:'#2A0F10'},
+  {id:'monokai',        label:'🎨 Monokai',            bg:'#1E1F1C',text:'#F8F8F2',pri:'#A6E22E',surf:'#272822'},
+  {id:'lightspeed',     label:'🚀 Lightspeed',         bg:'#020617',text:'#E5F0FF',pri:'#22D3EE',surf:'#02081F'},
+  {id:'monolith',       label:'🗿 Monolith',           bg:'#111111',text:'#CCCCCC',pri:'#888888',surf:'#1A1A1A'},
+  {id:'light',          label:'☀️ Light',              bg:'#FFFFFF',text:'#202020',pri:'#1E88E5',surf:'#FFFFFF'},
+  {id:'gem_blue', label:'💎 Gem Blue', bg:'#0B1B2A', text:'#D9F2FF', pri:'#3AA8FF', surf:'#142C3F'},
+  {id:'bored', label:'😐 Bored Mode', bg:'#1E1E1E', text:'#BDBDBD', pri:'#6E6E6E', surf:'#2A2A2A'},
+  {id:'existential_crisis', label:'😭 Existential Crisis', bg:'#0B0F1A', text:'#C7D2FF', pri:'#6B7CFF', surf:'#141B2D'},
+  {id:'sigma_rage', label:'😤 Sigma Rage', bg:'#120A0A', text:'#FFE1E1', pri:'#FF2E2E', surf:'#1F0F0F'},
+  {id:'overthinking', label:'🧠 Overthinking Spiral', bg:'#151522', text:'#D6D6FF', pri:'#8A7CFF', surf:'#1E1E33'},
+  {id:'mentally_gone', label:'💀 Mentally Gone', bg:'#000000', text:'#9A9A9A', pri:'#444444', surf:'#111111'},
+  {id:'give_up', label:'🏳️ I give up', bg:'#2C2F36', text:'#D9DEE8', pri:'#A3B1C6', surf:'#3A3F4A'},
+  {id:'delusional_confidence', label:'🔥 Delusional Confidence', bg:'#1A0F00', text:'#FFE6B3', pri:'#FF9F1C', surf:'#2A1600'},
+  {id:'brain_rot', label:'🍎 Brain Rot', bg:'#0F1B1C', text:'#DFFBFF', pri:'#00FFD5', surf:'#163436'},
+  {id:'ice_cold', label:'🧊 Ice Cold', bg:'#0A1B2A', text:'#D6ECFF', pri:'#4DB3FF', surf:'#102C44'},
+  {id:'npc_mode', label:'🧍 NPC', bg:'#2B2B2B', text:'#D0D0D0', pri:'#7A7A7A', surf:'#3A3A3A'},
+  {id:'washed_brain', label:'🧼 Washed Brain', bg:'#EAF6F6', text:'#3B4A4A', pri:'#7CCCCC', surf:'#D8EFEF'},
+  {id:'skill_issue', label:'📉 Skill Issue', bg:'#1A0F12', text:'#FFD6DC', pri:'#FF4D6D', surf:'#2A1418'},
+  {id:'instant_noodle_brain', label:'🍜 Instant Noodle Brain', bg:'#2A1A0A', text:'#FFE3B0', pri:'#FF9F1C', surf:'#3A2412'},
+  {id:'lost_thought', label:'🧠 I had a thought', bg:'#151515', text:'#E0E0E0', pri:'#AAAAAA', surf:'#222222'},
+  {id:'broke_mode', label:'💸 Broker Mode', bg:'#0F1A0F', text:'#D6FFD6', pri:'#4DFF88', surf:'#1A2A1A'},
+  {id:'low_signal', label:'📶 Low Signal', bg:'#101820', text:'#CFE8FF', pri:'#4DA3FF', surf:'#1A2A38'},
+  {id:'too_many_tabs', label:'🧃 Too Many Tabs', bg:'#1C1C2E', text:'#DADAF7', pri:'#8A8AFF', surf:'#2A2A44'},
+  {id:'goldfish', label:'🐟 Goldfish Memory', bg:'#0E2A2A', text:'#D6FFFF', pri:'#5FFFE0', surf:'#163A3A'},
+  {id:'just_sitting', label:'🪑 Just Sitting Here', bg:'#1E1E1E', text:'#CFCFCF', pri:'#8C8C8C', surf:'#2A2A2A'},
+  {id:'upset_stomach', label:'🤢 Upset Stomach', bg:'#2A2F1E', text:'#E6F4C7', pri:'#A3C853', surf:'#3A4426'},
+  {id:'upset_stomach2', label:'🧪 Food Poisoning', bg:'#2A2F1E', text:'#E6F4C7', pri:'#A3C853', surf:'#3A4426'},
+  {id:'upset_stomach3', label:'🧬 Soft nausea', bg:'#1F2418', text:'#DFF0B3', pri:'#7FBF3F', surf:'#2E3A22'},
+];
+
+let _curThemeId=null;
+
+function applyTheme(d,themeId){
+  // themeId = custom theme id or 'dark'/'light' for built-in
+  if(themeId&&themeId!=='dark'&&themeId!=='light'){
+    const t=CUSTOM_THEMES.find(x=>x.id===themeId);
+    if(t){
+      const root=document.documentElement;
+      // Determine base theme by bg brightness
+      const isDark=parseInt(t.bg.slice(1,3),16)<128;
+      root.setAttribute('data-theme',isDark?'dark':'light');
+      root.style.setProperty('--bg',t.bg);
+      root.style.setProperty('--surface',t.surf);
+      root.style.setProperty('--surface-2',t.surf);
+      root.style.setProperty('--text',t.text);
+      root.style.setProperty('--primary',t.pri);
+      // Derive muted from text
+      _curThemeId=themeId;
+      lsSave({theme:d||'dark',customTheme:themeId});
+      updateThemeToggleIcon(isDark?'dark':'light');
+      updateThemePopupActive();
+      return;
+    }
+  }
+  // Built-in theme — clear custom overrides
+  document.documentElement.style.removeProperty('--bg');
+  document.documentElement.style.removeProperty('--surface');
+  document.documentElement.style.removeProperty('--surface-2');
+  document.documentElement.style.removeProperty('--text');
+  document.documentElement.style.removeProperty('--primary');
+  _curThemeId=themeId||d||'dark';
+  document.documentElement.setAttribute('data-theme',d);
+  lsSave({theme:d,customTheme:themeId||d});
+  updateThemeToggleIcon(d);
+  updateThemePopupActive();
+}
+function updateThemeToggleIcon(d){
+  const t=document.getElementById('themeToggleBtn');
+  if(!t)return;
+  t.innerHTML=d==='dark'
+    ?`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+    :`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+}
+function updateThemePopupActive(){
+  document.querySelectorAll('.theme-popup-item').forEach(el=>{
+    el.classList.toggle('active',el.dataset.tid===_curThemeId);
+  });
+}
+function buildThemePopup(){
+  const popup=document.getElementById('themePopup');
+  if(!popup)return;
+  popup.innerHTML='';
+  // Built-in first
+  [{id:'dark',label:'🌑 Dark (default)',bg:'#121212',text:'#E0E0E0',pri:'#03DAC6',surf:'#1E1E1E'},
+   {id:'light',label:'☀️ Light',bg:'#FFFFFF',text:'#202020',pri:'#1E88E5',surf:'#FFFFFF'},
+   ...CUSTOM_THEMES.filter(t=>t.id!=='dark'&&t.id!=='light')
+  ].forEach(t=>{
+    const item=document.createElement('div');
+    item.className='theme-popup-item';
+    item.dataset.tid=t.id;
+    const swatch=document.createElement('div');
+    swatch.className='theme-swatch';
+    swatch.style.background=`linear-gradient(90deg,${t.bg} 50%,${t.pri} 50%)`;
+    const label=document.createElement('span');label.textContent=t.label;
+    item.appendChild(swatch);item.appendChild(label);
+    item.onclick=()=>{
+      const isDark=parseInt(t.bg.slice(1,3),16)<128;
+      applyTheme(isDark?'dark':'light',t.id);
+      closeThemePopup();
+    };
+    popup.appendChild(item);
+  });
+  updateThemePopupActive();
+}
+function closeThemePopup(){
+  const p=document.getElementById('themePopup');
+  if(p)p.classList.remove('open');
+}
+// Show/hide popup on hover over wrapper
+(function(){
+  let _tid=null;
+  document.addEventListener('mouseover',e=>{
+    const w=e.target.closest('#themeToggleWrapper');
+    if(w){clearTimeout(_tid);document.getElementById('themePopup').classList.add('open');}
+  });
+  document.addEventListener('mouseout',e=>{
+    const w=e.target.closest('#themeToggleWrapper');
+    const rw=e.relatedTarget&&e.relatedTarget.closest('#themeToggleWrapper');
+    if(w&&!rw){_tid=setTimeout(closeThemePopup,200);}
+  });
+})();
+
+// ── UI Scale (browser-level zoom) ──────────────────────────────────────────
+let uiScale=1;
+function applyScale(s){
+  uiScale=s;
+  document.body.style.zoom=s;
+  document.getElementById('scaleVal').textContent=Math.round(s*100)+'%';
+}
+function adjustScale(delta){
+  const s=Math.min(2.0,Math.max(0.5,+(uiScale+delta).toFixed(2)));
+  applyScale(s);
+  lsSave({uiScale:s});
+}
+function restoreScale(){
+  applyScale(lsGet('uiScale',1));
+}
+
+// ── Section collapse ───────────────────────────────────────────────────────
+function toggleSec(head,key){
+  const body=head.nextElementSibling;
+  const chev=head.querySelector('[data-lucide="chevron-down"]');
+  const c=body.classList.toggle('collapsed');
+  if(chev)chev.style.transform=c?'rotate(-90deg)':'';
+  lsSave({['sec_'+key]:c});
+}
+function restoreSections(){
+  ['presets','interval','mouse','location','repeat','options'].forEach(k=>{
+    if(lsGet('sec_'+k,false)){
+      const sec=document.getElementById('sec-'+k);if(!sec)return;
+      const body=sec.querySelector('.sec-body');
+      const chev=sec.querySelector('[data-lucide="chevron-down"]');
+      body.classList.add('collapsed');if(chev)chev.style.transform='rotate(-90deg)';
+    }
+  });
+}
+
+// ── API ────────────────────────────────────────────────────────────────────
+async function api(path,method='GET',body=null){
+  try{
+    const opts={method,headers:{'Content-Type':'application/json'}};
+    if(body)opts.body=JSON.stringify(body);
+    const r=await fetch(API+path,opts);
+    return await r.json();
+  }catch(e){return null;}
+}
+async function cfgSend(patch){
+  const r=await api('/config','POST',patch);
+  if(r)log('cfg: '+JSON.stringify(patch),'i');
+}
+
+// ── Poll ───────────────────────────────────────────────────────────────────
+let _prevPollRunning=null;
+async function poll(){
+  const s=await api('/status');
+  if(!s){setConnected(false);return;}
+  setConnected(true);
+  if(_prevPollRunning===true&&s.running===false)startCooldownUI();
+  _prevPollRunning=s.running;
+  updateFromStatus(s);
+  // Visualizer/sound handled by pollViz()
+}
+async function pollCursor(){
+  const r=await api('/cursor');
+  if(r){curX=r.x;curY=r.y;document.getElementById('coordLive').textContent=`X: ${r.x}  Y: ${r.y}`;}
+}
+
+function setConnected(ok){
+  if(connected===ok)return;connected=ok;
+  document.getElementById('connDot').className='conn-dot'+(ok?' ok':'');
+  document.getElementById('connLabel').textContent=ok?'Ready':'Offline';
+  document.getElementById('offlineBanner').className='offline-banner'+(ok?'':' show');
+  if(ok){if(!connected)log('Connected','s');}else{if(connected)log('Backend offline','e');}
+  lucide.createIcons();
+}
+
+function updateFromStatus(s){
+  if(s.cfg)window._lastCfg=s.cfg;
+  running=s.running;
+  document.getElementById('st-session').textContent=s.session_clicks;
+  document.getElementById('st-total').textContent=s.click_count;
+  document.getElementById('st-cps').textContent=s.cps.toFixed(1);
+  const icon=document.getElementById('statusIcon');
+  const txt=document.getElementById('statusText');
+  const sub=document.getElementById('statusSub');
+  const btn=document.getElementById('mainBtn');
+  const _L=LANGS[curLang]||LANGS.en;
+  if(s.running){
+    icon.className='status-icon live';icon.innerHTML='<i data-lucide="zap" style="width:28px;height:28px"></i>';
+    txt.className='status-state live';txt.textContent=_L.status_run||'Running';
+    sub.textContent=`Session: ${s.session_clicks} clicks`;
+    btn.className='main-btn stop';
+    document.getElementById('mainBtnIcon').setAttribute('data-lucide','square');
+    document.getElementById('mainBtnText').textContent=_L.stop||'Stop';
+  }else{
+    icon.className='status-icon';icon.innerHTML='<i data-lucide="mouse-pointer-2" style="width:28px;height:28px"></i>';
+    txt.className='status-state';txt.textContent=_L.status_idle||'Idle';
+    const hk=document.getElementById('sel-hotkey').value.toUpperCase();
+    sub.innerHTML=(_L.hint_start||'Press Start or')+' <kbd class="kbd">'+hk+'</kbd>';
+    // Preserve cooldown state during countdown
+    const _inCooldown=_cooldownUntil>Date.now();
+    btn.className='main-btn'+(_inCooldown?' cooldown-active':'');
+    btn.disabled=_inCooldown;
+    document.getElementById('mainBtnIcon').setAttribute('data-lucide','play');
+    if(!_inCooldown)document.getElementById('mainBtnText').textContent=_L.start||'Start Clicking';
+  }
+  const cfg=s.cfg||{};
+  if(cfg.repeat_mode==='count'&&cfg.repeat_count>0){
+    const pct=Math.min((s.session_clicks/cfg.repeat_count)*100,100);
+    document.getElementById('prog-count').style.width=pct+'%';
+    document.getElementById('prog-count-label').textContent=s.session_clicks+' / '+cfg.repeat_count;
+  }
+  if(cfg.repeat_mode==='duration'&&cfg.duration_ms>0){
+    const pct=Math.min((s.elapsed_ms/cfg.duration_ms)*100,100);
+    document.getElementById('prog-dur').style.width=pct+'%';
+    const rem=Math.max(0,cfg.duration_ms-s.elapsed_ms);
+    const m=Math.floor(rem/60000),sec=Math.floor((rem%60000)/1000);
+    document.getElementById('prog-dur-label').textContent=m+':'+String(sec).padStart(2,'0')+' remaining';
+  }
+  if(cfg.invisible_click!==undefined) document.getElementById('tog-invisible').checked=!!cfg.invisible_click;
+  // Sync saved coords when backend position changes (e.g. F8 hotkey while unfocused)
+  if(cfg.fixed_x!==undefined&&(window._lastKnownFixedX!==cfg.fixed_x||window._lastKnownFixedY!==cfg.fixed_y)){
+    window._lastKnownFixedX=cfg.fixed_x;window._lastKnownFixedY=cfg.fixed_y;
+    const cEl=document.getElementById('coordSaved');
+    if(cEl&&(cfg.fixed_x||cfg.fixed_y)){
+      cEl.textContent='Saved: X '+cfg.fixed_x+'  Y '+cfg.fixed_y;
+      cEl.classList.add('flash-green');setTimeout(()=>cEl.classList.remove('flash-green'),1200);
+    }
+    const inFx=document.getElementById('in-fx');const inFy=document.getElementById('in-fy');
+    const inCx=document.getElementById('in-cx');const inCy=document.getElementById('in-cy');
+    if(inFx&&document.activeElement!==inFx)inFx.value=cfg.fixed_x;
+    if(inFy&&document.activeElement!==inFy)inFy.value=cfg.fixed_y;
+    if(inCx&&document.activeElement!==inCx)inCx.value=cfg.fixed_x;
+    if(inCy&&document.activeElement!==inCy)inCy.value=cfg.fixed_y;
+  }
+  lucide.createIcons();
+}
+
+// ── Apply config to UI ─────────────────────────────────────────────────────
+function applyConfigToUI(cfg){
+  const im=cfg.interval_mode||'fixed';
+  setSegActive('seg-interval',im);
+  document.getElementById('sl-interval').value=cfg.interval||100;
+  slideIntervalDisplay(cfg.interval||100);
+  document.getElementById('in-rmin').value=cfg.rand_min||50;
+  document.getElementById('in-rmax').value=cfg.rand_max||500;
+  document.getElementById('sl-hcps').value=cfg.human_cps||4;
+  document.getElementById('sv-hcps').textContent=cfg.human_cps||4;
+  document.getElementById('panel-fixed').style.display=im==='fixed'?'':'none';
+  document.getElementById('panel-random').style.display=im==='random'?'':'none';
+  document.getElementById('panel-human').style.display=im==='human'?'':'none';
+  const _pa=document.getElementById('panel-adjuster');
+  if(_pa)_pa.style.display=(im==='fixed'||im==='human')?'':'none';
+  setSegActive('seg-btn',cfg.mouse_btn||'left');
+  document.getElementById('tog-double').checked=!!cfg.double_click;
+  document.getElementById('tog-invisible').checked=!!cfg.invisible_click;
+  const lm=cfg.loc_mode||'fixed';
+  setSegActive('seg-loc',lm);locMode(lm);
+  document.getElementById('in-fx').value=cfg.fixed_x||500;
+  document.getElementById('in-fy').value=cfg.fixed_y||300;
+  document.getElementById('in-cx').value=cfg.fixed_x||500;
+  document.getElementById('in-cy').value=cfg.fixed_y||300;
+  document.getElementById('in-rx').value=cfg.rand_radius_x||100;
+  document.getElementById('in-ry').value=cfg.rand_radius_y||100;
+  if(cfg.fixed_x||cfg.fixed_y) document.getElementById('coordSaved').textContent=`Saved: X ${cfg.fixed_x}  Y ${cfg.fixed_y}`;
+  const rm=cfg.repeat_mode||'infinite';
+  setSegActive('seg-rep',rm);repMode(rm);
+  document.getElementById('in-count').value=cfg.repeat_count||100;
+  if(cfg.duration_ms){const m=Math.floor(cfg.duration_ms/60000),s=Math.floor((cfg.duration_ms%60000)/1000);document.getElementById('in-dmin').value=m;document.getElementById('in-dsec').value=s;}
+  document.getElementById('tog-jitter').checked=(cfg.jitter||0)>0;
+  document.getElementById('in-movedur').value=cfg.move_duration||0.05;
+  const hk=cfg.hotkey||'f6';
+  document.getElementById('sel-hotkey').value=hk;
+  updateHotkeyDisplay();
+  // set_pos_hotkey
+  const posHk=cfg.set_pos_hotkey||'f8';
+  const posHkSel=document.getElementById('sel-pos-hotkey');
+  if(posHkSel){
+    let found=[...posHkSel.options].some(o=>o.value===posHk);
+    if(!found){const opt=document.createElement('option');opt.value=posHk;opt.textContent=posHk.toUpperCase();posHkSel.appendChild(opt);}
+    posHkSel.value=posHk;
+  }
+  const posHkOn=document.getElementById('tog-pos-hotkey');
+  if(posHkOn)posHkOn.checked=cfg.set_pos_hotkey_on!==false;
+  updateSavePosHotkeyDisplay(cfg.set_pos_hotkey||'f8');
+}
+function setSegActive(id,val){document.querySelectorAll('#'+id+' .seg-btn').forEach(b=>b.classList.toggle('on',b.dataset.val===val));}
+function updateHotkeyDisplay(){
+  const hk=document.getElementById('sel-hotkey').value.toUpperCase();
+  document.getElementById('mainBtnKbd').textContent=hk;
+  document.getElementById('hotkeyBadge').textContent=hk;
+}
+function updateSavePosHotkeyDisplay(forceVal){
+  const sel=document.getElementById('sel-pos-hotkey');
+  const fromCfg=(window._lastCfg&&window._lastCfg.set_pos_hotkey)||null;
+  const hk=(forceVal||(sel&&sel.value&&sel.value!=='f8'?sel.value:null)||fromCfg||'f8').toUpperCase();
+  const b1=document.getElementById('savePosHkBadge');
+  const b2=document.getElementById('savePosHkInstr');
+  if(b1)b1.textContent=hk;
+  if(b2)b2.textContent=hk;
+}
+
+// ── Hotkey capture ─────────────────────────────────────────────────────────
+let _capturingHotkey=false;
+let _captureTarget=null; // 'toggle' or 'setpos'
+function startHotkeyCapture(target='toggle'){
+  if(_capturingHotkey)return;
+  _capturingHotkey=true;
+  _captureTarget=target;
+  let btn=null;
+  if(target==='toggle') btn=document.getElementById('captureHotkeyBtn');
+  else if(target==='stop') btn=document.getElementById('captureStopHotkeyBtn');
+  else btn=document.getElementById('capturePosHotkeyBtn');
+  if(btn){btn._origText=btn.textContent;btn.textContent='⌨ Key/Click/Scroll…';btn.style.color='var(--warning)';}
+
+  function finish(combo){
+    cleanup();
+    _capturingHotkey=false;
+    if(btn){btn.textContent=btn._origText||'⌨ Capture';btn.style.color='';}
+    // Inject option into appropriate select
+    function injectOpt(selId){
+      const sel=document.getElementById(selId);
+      if(!sel)return;
+      if(![...sel.options].some(o=>o.value===combo)){
+        const o=document.createElement('option');
+        o.value=combo;o.textContent=combo.toUpperCase();
+        sel.appendChild(o);
+      }
+      sel.value=combo;
+    }
+    if(target==='toggle'){
+      injectOpt('sel-hotkey');
+      cfgSend({hotkey:combo});
+      updateHotkeyDisplay();
+      fetch(API+'/rebind_hotkeys',{method:'POST'});
+      toast('Toggle: '+combo.toUpperCase(),'s');
+    } else if(target==='stop'){
+      injectOpt('sel-stopkey');
+      cfgSend({stop_key:combo});
+      fetch(API+'/rebind_hotkeys',{method:'POST'});
+      toast('Stop: '+combo.toUpperCase(),'s');
+    } else if(target==='restart'){
+      injectOpt('sel-restart-hotkey');
+      cfgSend({restart_hotkey:combo});
+      fetch(API+'/rebind_hotkeys',{method:'POST'});
+      toast('Restart hotkey: '+combo.toUpperCase(),'s');
+    } else {
+      injectOpt('sel-pos-hotkey');
+      cfgSend({set_pos_hotkey:combo});
+      fetch(API+'/rebind_hotkeys',{method:'POST'});
+      updateSavePosHotkeyDisplay(combo);
+      toast('Set Pos: '+combo.toUpperCase(),'s');
+    }
+  }
+
+  function onKey(e){
+    if(e.key==='Escape'){cleanup();_capturingHotkey=false;if(btn){btn.textContent=btn._origText||'⌨ Capture';btn.style.color='';}return;}
+    e.preventDefault();e.stopPropagation();
+    let combo='';
+    if(e.ctrlKey&&e.key!=='Control')combo+='ctrl+';
+    if(e.altKey&&e.key!=='Alt')combo+='alt+';
+    if(e.shiftKey&&e.key!=='Shift')combo+='shift+';
+    const kmap={' ':'space',ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+    combo+=(kmap[e.key]||e.key.toLowerCase());
+    finish(combo);
+  }
+  function onMouse(e){
+    e.preventDefault();e.stopPropagation();
+    const names=['mouse1','mouse3','mouse2','mouse4','mouse5'];
+    finish(names[e.button]||('mouse'+(e.button+1)));
+  }
+  function onWheel(e){
+    e.preventDefault();e.stopPropagation();
+    finish(e.deltaY<0?'wheelup':'wheeldown');
+  }
+  function cleanup(){
+    document.removeEventListener('keydown',onKey,true);
+    document.removeEventListener('mousedown',onMouse,true);
+    document.removeEventListener('wheel',onWheel,{capture:true,passive:false});
+  }
+  document.addEventListener('keydown',onKey,true);
+  document.addEventListener('mousedown',onMouse,true);
+  document.addEventListener('wheel',onWheel,{capture:true,passive:false});
+}
+function cancelCapture(){
+  _capturingHotkey=false;
+  const b1=document.getElementById('captureHotkeyBtn');
+  const b2=document.getElementById('capturePosHotkeyBtn');
+  const b3=document.getElementById('captureRestartHotkeyBtn');
+  if(b1){b1.textContent=b1._origText||'⌨ Capture';b1.style.color='';}
+  if(b2){b2.textContent=b2._origText||'⌨ Capture';b2.style.color='';}
+  if(b3){b3.textContent=b3._origText||'⌨ Capture';b3.style.color='';}
+}
+function onRestartHkToggle(on){
+  cfgSend({restart_hotkey_on:on});
+  fetch(API+'/rebind_hotkeys',{method:'POST'});
+  const p=document.getElementById('restartHkPanel');
+  if(p)p.style.display=on?'flex':'none';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&_capturingHotkey)cancelCapture();},{capture:true});
+
+// ── Toggle ─────────────────────────────────────────────────────────────────
+let _cooldownUntil=0;
+let _cooldownTimer=null;
+function toggleCooldownPanel(on){
+  const p=document.getElementById('cooldownPanel');
+  if(p)p.style.display=on?'':'none';
+}
+
+// Hard stop — always works, no cooldown check, called by Stop button
+async function hardStop(){
+  const r=await api('/stop','POST');
+  if(!r){toast('Cannot reach backend','e');return;}
+  running=false;
+  log('Stopped (hard)','w');
+  toast('■ Clicker stopped','w');
+  startCooldownUI();
+}
+
+function startCooldownUI(){
+  if(!lsGet('stopCooldownOn',true))return;
+  const secs=lsGet('stopCooldownSec',3);
+  _cooldownUntil=Date.now()+secs*1000;
+  const btn=document.getElementById('mainBtn');
+  if(!btn)return;
+  btn.disabled=true;
+  btn.classList.add('cooldown-active');
+  clearInterval(_cooldownTimer);
+  _cooldownTimer=setInterval(()=>{
+    const rem=Math.ceil((_cooldownUntil-Date.now())/1000);
+    if(rem<=0){
+      clearInterval(_cooldownTimer);_cooldownTimer=null;
+      btn.disabled=false;
+      btn.classList.remove('cooldown-active');
+      const kbdEl=document.getElementById('mainBtnKbd');
+      const hk=kbdEl?kbdEl.textContent:'F6';
+      const L=LANGS[curLang]||LANGS.en;
+      document.getElementById('mainBtnText').textContent=L.start;
+      return;
+    }
+    document.getElementById('mainBtnText').textContent='⏳ '+rem+'s';
+  },250);
+}
+
+// Restart via dedicated restart hotkey (can bypass cooldown)
+async function restartViaHotkey(){
+  if(running)return;
+  const bypassCooldown=lsGet('restartBypassCooldown',false);
+  if(!bypassCooldown&&lsGet('stopCooldownOn',true)){
+    const remaining=_cooldownUntil-Date.now();
+    if(remaining>0){toast('⏳ Cooldown: wait '+Math.ceil(remaining/1000)+'s','w');return;}
+  }
+  const r=await api('/start','POST');
+  if(!r){toast('Cannot reach backend','e');return;}
+  running=r.running;
+  log('Restarted (hotkey)','s');toast('▶ Restarted','s');
+  if(bypassCooldown){
+    _cooldownUntil=0;
+    if(_cooldownTimer){clearInterval(_cooldownTimer);_cooldownTimer=null;}
+    const btn=document.getElementById('mainBtn');
+    if(btn){btn.disabled=false;btn.classList.remove('cooldown-active');}
+    document.getElementById('mainBtnText').textContent=(LANGS[curLang]||LANGS.en).stop||'Stop';
+  }
+}
+
+// Toggle — only starts; stop path goes through hardStop
+async function toggle(){
+  if(running){
+    // User pressed toggle while running = stop
+    await hardStop();
+    return;
+  }
+  // Cooldown check: block restart
+  if(lsGet('stopCooldownOn',true)){
+    const remaining=_cooldownUntil-Date.now();
+    if(remaining>0){
+      toast('⏳ Cooldown: wait '+Math.ceil(remaining/1000)+'s','w');
+      return;
+    }
+  }
+  const r=await api('/start','POST');
+  if(!r){toast('Cannot reach backend','e');return;}
+  running=r.running;
+  log('Started','s');
+  toast('▶ Clicker started','s');
+}
+
+// ── Segment controls ───────────────────────────────────────────────────────
+function segPick(btn,groupId,cfgKey){
+  document.querySelectorAll('#'+groupId+' .seg-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');cfgSend({[cfgKey]:btn.dataset.val});
+  if(cfgKey==='interval_mode'){
+    const m=btn.dataset.val;
+    document.getElementById('panel-fixed').style.display=m==='fixed'?'':'none';
+    document.getElementById('panel-random').style.display=m==='random'?'':'none';
+    document.getElementById('panel-human').style.display=m==='human'?'':'none';
+    const pa=document.getElementById('panel-adjuster');
+    if(pa)pa.style.display=(m==='fixed'||m==='human')?'':'none';
+  }
+}
+function locMode(m){
+  document.getElementById('loc-fixed').style.display=m==='fixed'?'':'none';
+  document.getElementById('loc-random').style.display=m==='random'?'':'none';
+  document.getElementById('loc-seq-note').style.display=m==='sequence'?'':'none';
+}
+function repMode(m){
+  document.getElementById('rep-count').style.display=m==='count'?'':'none';
+  document.getElementById('rep-dur').style.display=m==='duration'?'':'none';
+}
+function updateDurConfig(){
+  const m=parseInt(document.getElementById('in-dmin').value)||0;
+  const s=parseInt(document.getElementById('in-dsec').value)||0;
+  cfgSend({duration_ms:(m*60+s)*1000||60000});
+}
+function slideIntervalDisplay(v){
+  v=parseInt(v);
+  document.getElementById('sv-interval').textContent=v>=1000?(v/1000).toFixed(1)+'s':v+'ms';
+  document.getElementById('sl-interval').value=v;
+}
+function slideInterval(el){slideIntervalDisplay(el.value);cfgSend({interval:+el.value});}
+
+// ── Save position ──────────────────────────────────────────────────────────
+async function savePosition(){
+  if(!connected){toast('Not connected','e');return;}
+  const x=curX,y=curY;
+  const r=await api('/cursor/save','POST');
+  if(!r){toast('Save failed','e');return;}
+  document.getElementById('in-fx').value=x;document.getElementById('in-fy').value=y;
+  document.getElementById('in-cx').value=x;document.getElementById('in-cy').value=y;
+  const savedEl=document.getElementById('coordSaved');
+  savedEl.textContent=`Saved: X ${x}  Y ${y}`;
+  savedEl.classList.add('flash-green');setTimeout(()=>savedEl.classList.remove('flash-green'),1200);
+  const btn=document.getElementById('savePosBtn');btn.classList.add('flash');setTimeout(()=>btn.classList.remove('flash'),600);
+  toast(`📌 Saved: ${x}, ${y}`,'s');log(`Position saved: X=${x} Y=${y}`,'s');
+}
+function captureCurrentPos(){
+  if(!connected)return;
+  document.getElementById('in-fx').value=curX;document.getElementById('in-fy').value=curY;
+  document.getElementById('in-cx').value=curX;document.getElementById('in-cy').value=curY;
+  cfgSend({fixed_x:curX,fixed_y:curY});
+  toast(`Position set: ${curX}, ${curY}`,'s');
+}
+
+// ── Presets ────────────────────────────────────────────────────────────────
+const BUILTIN_PRESETS={
+  gaming:  {interval_mode:'fixed',interval:50,mouse_btn:'left',repeat_mode:'infinite',jitter:0,double_click:false},
+  farming: {interval_mode:'random',rand_min:800,rand_max:1200,mouse_btn:'left',repeat_mode:'infinite',jitter:2,double_click:false},
+  human:   {interval_mode:'human',human_cps:3,mouse_btn:'left',repeat_mode:'infinite',jitter:3,double_click:false},
+  rapid:   {interval_mode:'fixed',interval:10,mouse_btn:'left',repeat_mode:'infinite',jitter:0,double_click:false},
+  test:    {interval_mode:'fixed',interval:200,mouse_btn:'left',repeat_mode:'count',repeat_count:10,jitter:0,double_click:false},
+};
+
+async function loadPreset(name){
+  const cfg=BUILTIN_PRESETS[name];
+  if(!cfg)return;
+  const r=await api('/config','POST',cfg);
+  if(r){applyConfigToUI(r.cfg);toast(`Preset loaded: ${name}`,'s');log(`Preset: ${name}`,'i');}
+}
+
+async function loadCustomPreset(preset){
+  const r=await api('/config','POST',preset.cfg);
+  if(r){applyConfigToUI(r.cfg);toast(`Preset loaded: ${preset.name}`,'s');log(`Preset: ${preset.name}`,'i');}
+}
+
+async function saveCurrentAsPreset(){
+  const name=prompt('Preset name:','My Preset');
+  if(!name)return;
+  const s=await api('/status');
+  if(!s)return;
+  const preset={name,cfg:s.cfg};
+  await api('/presets','POST',preset);
+  toast(`Preset saved: ${name}`,'s');
+  loadCustomPresets();
+}
+
+async function deleteCustomPreset(name){
+  if(!confirm(`Delete preset "${name}"?`))return;
+  await api(`/presets/${encodeURIComponent(name)}`, 'DELETE');
+  toast(`Deleted: ${name}`,'w');
+  loadCustomPresets();
+}
+
+async function loadCustomPresets(){
+  const presets=await api('/presets');
+  if(!presets)return;
+  const container=document.getElementById('customPresetsList');
+  container.innerHTML='';
+  presets.forEach(p=>{
+    const btn=document.createElement('button');
+    btn.className='preset-btn';
+    btn.innerHTML=`<span style="font-size:var(--text-xs);font-weight:600">${esc(p.name)}</span><button class="preset-del" onclick="event.stopPropagation();deleteCustomPreset('${esc(p.name)}')" title="Delete"><i data-lucide="x" style="width:10px;height:10px"></i></button>`;
+    btn.onclick=()=>loadCustomPreset(p);
+    container.appendChild(btn);
+  });
+  lucide.createIcons();
+}
+
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='SELECT')return;
+  if(e.key==='F2'){e.preventDefault();captureCurrentPos();}
+  if(e.key==='F8'){e.preventDefault();savePosition();}
+  const hk=document.getElementById('sel-hotkey').value;
+  if(e.key.toLowerCase()===hk||e.code.toLowerCase()===hk){e.preventDefault();toggle();}
+  if(lsGet('restartHkOn',false)){
+    const rhk=(document.getElementById('sel-restart-hotkey')||{}).value||'';
+    if(rhk&&(e.key.toLowerCase()===rhk||e.code.toLowerCase()===rhk)){e.preventDefault();restartViaHotkey();}
+  }
+});
+
+// ── Stop on human mouse move ──────────────────────────────────────────────
+let _stopOnMoveFired = false;
+setInterval(async () => {
+  if(!lsGet('stopOnBlur', false) || !running) {
+    _stopOnMoveFired = false;  // reset when not running
+    return;
+  }
+  if(_stopOnMoveFired) return;  // already handled
+  try {
+    const r = await fetch(API + '/mouse_moved');
+    const j = await r.json();
+    if(j.moved) {
+      _stopOnMoveFired = true;
+      api('/stop', 'POST').then(() => {
+        running = false;
+        startCooldownUI();
+        log('Stopped: mouse moved', 'w');
+        toast('Stopped: mouse moved', 'w');
+      });
+    }
+  } catch(e) {}
+}, 80);
+
+setInterval(async () => {
+  if(!lsGet('stopOnBlur', false) || !running) return;
+  try {
+    const r = await fetch(API + '/mouse_moved');
+    const j = await r.json();
+    if(j.moved) {
+      api('/stop', 'POST').then(() => {
+        running = false;
+        updateFromStatus({running: false, sessionclicks: 0, clickcount: 0, cps: 0, cfg: {}});
+        log('Stopped: mouse moved', 'w');
+        toast('Stopped: mouse moved', 'w');
+      });
+    }
+  } catch(e) {}
+}, 80);
+
+// ── Sequence Profiles ─────────────────────────────────────────────────────
+// seqProfiles: [{name, enabled, steps:[]}]   activeProfileIdx: int
+let seqProfiles = [{name:'Default', enabled:true, steps:[]}];
+let activeProfileIdx = 0;
+
+function seqProfilesLoad(){
+  try{
+    const raw=localStorage.getItem('lc_seq_profiles');
+    if(raw){seqProfiles=JSON.parse(raw);}
+  }catch(e){}
+  if(!seqProfiles||!seqProfiles.length) seqProfiles=[{name:'Default',enabled:true,steps:[]}];
+  activeProfileIdx=parseInt(localStorage.getItem('lc_seq_active_idx')||'0');
+  if(activeProfileIdx>=seqProfiles.length) activeProfileIdx=0;
+}
+function seqProfilesSave(){
+  seqProfiles[activeProfileIdx].steps=sequence;
+  localStorage.setItem('lc_seq_profiles',JSON.stringify(seqProfiles));
+  localStorage.setItem('lc_seq_active_idx',String(activeProfileIdx));
+}
+function seqProfileSwitch(idx){
+  seqProfiles[activeProfileIdx].steps=sequence; // save current
+  activeProfileIdx=idx;
+  sequence=seqProfiles[activeProfileIdx].steps||[];
+  pushSeq();
+  renderSeqProfileTabs();
+  renderSeq();
+  updateSeqProfileHeader();
+}
+function seqProfileNew(){
+  const name=prompt('New profile name:','Profile '+(seqProfiles.length+1));
+  if(!name)return;
+  seqProfiles.push({name,enabled:true,steps:[]});
+  seqProfileSwitch(seqProfiles.length-1);
+  seqProfilesSave();
+  toast('Profile created: '+name,'s');
+}
+function seqProfileRename(){
+  const p=seqProfiles[activeProfileIdx];
+  const name=prompt('Rename profile:',p.name);
+  if(!name)return;
+  p.name=name;
+  renderSeqProfileTabs();
+  updateSeqProfileHeader();
+  seqProfilesSave();
+}
+function seqProfileDelete(idx){
+  if(seqProfiles.length<=1){toast('Cannot delete last profile','e');return;}
+  if(!confirm('Delete profile "'+seqProfiles[idx].name+'"?'))return;
+  seqProfiles.splice(idx,1);
+  if(activeProfileIdx>=seqProfiles.length) activeProfileIdx=seqProfiles.length-1;
+  sequence=seqProfiles[activeProfileIdx].steps||[];
+  pushSeq();
+  renderSeqProfileTabs();
+  renderSeq();
+  updateSeqProfileHeader();
+  seqProfilesSave();
+}
+function seqProfileToggleActive(on){
+  seqProfiles[activeProfileIdx].enabled=on;
+  renderSeqProfileTabs();
+  seqProfilesSave();
+}
+function renderSeqProfileTabs(){
+  const wrap=document.getElementById('seqProfileTabs');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  seqProfiles.forEach((p,i)=>{
+    const tab=document.createElement('div');
+    tab.style.cssText='display:flex;align-items:center;gap:3px;';
+    const btn=document.createElement('button');
+    btn.className='btn btn-ghost btn-xs'+(i===activeProfileIdx?' seq-profile-active':'');
+    btn.style.cssText=i===activeProfileIdx
+      ?'background:var(--primary);color:#fff;padding:3px 8px;font-size:10px;font-weight:700;border-radius:6px;gap:4px'
+      :'padding:3px 8px;font-size:10px;border-radius:6px;opacity:'+(p.enabled?'1':'0.4');
+    btn.title=p.enabled?'Active':'Disabled';
+    const dot=document.createElement('span');
+    dot.style.cssText='width:6px;height:6px;border-radius:50%;background:'+(p.enabled?'#4ade80':'#ef4444')+';flex-shrink:0';
+    btn.appendChild(dot);
+    btn.appendChild(document.createTextNode(esc(p.name)));
+    btn.onclick=()=>seqProfileSwitch(i);
+    tab.appendChild(btn);
+    // del btn (not for last)
+    if(seqProfiles.length>1){
+      const del=document.createElement('button');
+      del.className='btn btn-ghost btn-xs';
+      del.style.cssText='padding:2px 4px;font-size:9px;opacity:0.5;border-radius:4px';
+      del.innerHTML='<i data-lucide="x" style="width:9px;height:9px"></i>';
+      del.onclick=(e)=>{e.stopPropagation();seqProfileDelete(i);};
+      tab.appendChild(del);
+    }
+    wrap.appendChild(tab);
+  });
+  lucide.createIcons();
+  // update active toggle
+  const tog=document.getElementById('tog-seqActive');
+  if(tog) tog.checked=seqProfiles[activeProfileIdx].enabled;
+}
+function updateSeqProfileHeader(){
+  const lbl=document.getElementById('seqProfileNameLabel');
+  if(lbl) lbl.textContent=seqProfiles[activeProfileIdx].name;
+  const tog=document.getElementById('tog-seqActive');
+  if(tog) tog.checked=seqProfiles[activeProfileIdx].enabled;
+}
+
+// ── Sequence ───────────────────────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+async function renderSeq(){
+  const body=document.getElementById('seqBody');
+  const empty=document.getElementById('seqEmpty');
+  body.innerHTML='';
+  document.getElementById('seqCountBadge').textContent=sequence.length?sequence.length+' steps':'0 steps';
+  if(!sequence.length){empty.style.display='';return;}
+  empty.style.display='none';
+  sequence.forEach((step,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="drag-handle"><i data-lucide="grip-vertical" style="width:12px;height:12px"></i></td>
+      <td style="font-size:10px;color:var(--faint);width:24px">${i+1}</td>
+      <td><input class="seq-input" value="${esc(step.label||'')}" onchange="seqEdit(${i},'label',this.value)" style="min-width:90px"></td>
+      <td><input class="seq-input seq-xy" type="number" value="${step.x||0}" onchange="seqEdit(${i},'x',+this.value)" style="width:60px"></td>
+      <td><input class="seq-input seq-xy" type="number" value="${step.y||0}" onchange="seqEdit(${i},'y',+this.value)" style="width:60px"></td>
+      <td><select class="seq-input" onchange="seqEdit(${i},'button',this.value)" style="min-width:56px">
+        <option${step.button==='left'?' selected':''}>left</option>
+        <option${step.button==='right'?' selected':''}>right</option>
+        <option${step.button==='middle'?' selected':''}>middle</option></select></td>
+      <td><input class="seq-input" type="number" step="0.1" value="${step.delay||0.3}" onchange="seqEdit(${i},'delay',+this.value)" style="width:50px"></td>
+      <td><label class="tog" style="width:32px;height:18px">
+        <input type="checkbox" ${step.enabled!==false?'checked':''} onchange="seqEdit(${i},'enabled',this.checked)">
+        <span class="tog-track"></span><span class="tog-thumb"></span></label></td>
+      <td style="display:flex;gap:2px">
+        <button class="btn-icon btn-ghost btn" onclick="seqDel(${i})"><i data-lucide="x" style="width:12px;height:12px"></i></button>
+        <button class="btn-icon btn-ghost btn" title="Set from cursor" onclick="seqCapture(${i})"><i data-lucide="crosshair" style="width:12px;height:12px"></i></button>
+      </td>`;
+    body.appendChild(tr);
+  });
+  lucide.createIcons();
+  seqProfilesSave();
+}
+function seqEdit(i,key,val){sequence[i][key]=val;pushSeq();seqProfilesSave();}
+function seqDel(i){sequence.splice(i,1);pushSeq();renderSeq();log(`Step ${i+1} deleted`,'w');}
+function seqCapture(i){if(!connected)return;sequence[i].x=curX;sequence[i].y=curY;pushSeq();renderSeq();toast(`Step ${i+1}: ${curX},${curY}`,'s');}
+async function addStepFromCursor(){
+  if(!connected){toast('Not connected','e');return;}
+  sequence.push({x:curX,y:curY,button:'left',delay:0.3,label:`Step ${sequence.length+1}`,enabled:true});
+  await pushSeq();renderSeq();toast(`Step added: ${curX},${curY}`,'s');
+}
+function addBlankStep(){sequence.push({x:0,y:0,button:'left',delay:0.3,label:`Step ${sequence.length+1}`,enabled:true});pushSeq();renderSeq();}
+async function clearSeq(){if(!confirm('Clear all steps?'))return;sequence=[];await api('/sequence/clear','POST');renderSeq();log('Sequence cleared','w');}
+async function pushSeq(){await api('/sequence','POST',sequence);}
+async function loadSeq(){const r=await api('/sequence');if(r)sequence=r;renderSeq();}
+function exportSeq(){
+  const blob=new Blob([JSON.stringify(sequence,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sequence.json';a.click();
+  toast('Exported','s');
+}
+function importSeq(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=async e=>{
+    const txt=await e.target.files[0].text();
+    try{sequence=JSON.parse(txt);await pushSeq();renderSeq();toast('Imported: '+sequence.length+' steps','s');}
+    catch{toast('Invalid JSON','e');}
+  };inp.click();
+}
+
+// ── Export / Import ALL settings ───────────────────────────────────────────
+async function exportAllSettings(){
+  const s=await api('/status');
+  const presets=await api('/presets');
+  const bundle={
+    version:2,
+    cfg:s?s.cfg:{},
+    seq_profiles:seqProfiles,
+    seq_active_idx:activeProfileIdx,
+    custom_presets:presets||[],
+    exported_at:new Date().toISOString()
+  };
+  const blob=new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='lexiclicker_settings_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  toast('Settings exported','s');
+}
+function importAllSettings(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=async e=>{
+    try{
+      const txt=await e.target.files[0].text();
+      const bundle=JSON.parse(txt);
+      if(!bundle.cfg){toast('Invalid settings file','e');return;}
+      // Apply cfg
+      await api('/config','POST',bundle.cfg);
+      // Apply profiles
+      if(bundle.seq_profiles){
+        seqProfiles=bundle.seq_profiles;
+        activeProfileIdx=bundle.seq_active_idx||0;
+        if(activeProfileIdx>=seqProfiles.length)activeProfileIdx=0;
+        sequence=seqProfiles[activeProfileIdx].steps||[];
+        await pushSeq();
+        renderSeqProfileTabs();
+        renderSeq();
+        updateSeqProfileHeader();
+        seqProfilesSave();
+      }
+      // Apply custom presets
+      if(bundle.custom_presets&&Array.isArray(bundle.custom_presets)){
+        for(const p of bundle.custom_presets) await api('/presets','POST',p);
+        loadCustomPresets();
+      }
+      // Refresh UI
+      const s2=await api('/status');
+      if(s2) applyConfigToUI(s2.cfg);
+      toast('Settings imported!','s');
+      log('Settings imported from file','i');
+    }catch(ex){toast('Import failed: '+ex.message,'e');}
+  };inp.click();
+}
+
+// ── Log & Toast ────────────────────────────────────────────────────────────
+function log(msg,type=''){
+  const body=document.getElementById('logBody');
+  const now=new Date();
+  const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const e=document.createElement('div');e.className='log-entry';
+  e.innerHTML=`<span class="log-t">${t}</span><span class="log-m ${type}">${msg}</span>`;
+  body.insertBefore(e,body.firstChild);logCount++;document.getElementById('logBadge').textContent=logCount;
+}
+function clearLog(){document.getElementById('logBody').innerHTML='';logCount=0;document.getElementById('logBadge').textContent='0';}
+function toast(msg,type='i'){
+  const c=document.getElementById('toastCont');
+  const el=document.createElement('div');el.className='toast';
+  const col={s:'var(--success)',e:'var(--error)',i:'var(--primary)',w:'var(--warning)'};
+  el.innerHTML=`<span style="color:${col[type]||col.i};flex-shrink:0">●</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(()=>{el.classList.add('toast-out');setTimeout(()=>el.remove(),300);},2500);
+}
+
+// ── Restore UI-only options from localStorage ──────────────────────────────
+function restoreUiOptions(){
+  document.getElementById('tog-viz').checked=lsGet('viz',false);
+  document.getElementById('tog-sound').checked=lsGet('sound',false);
+  document.getElementById('tog-focus').checked=lsGet('stopOnBlur',false);
+  const cdOn=lsGet('stopCooldownOn',true);
+  document.getElementById('tog-cooldown').checked=cdOn;
+  toggleCooldownPanel(cdOn);
+  document.getElementById('sl-cooldown').value=lsGet('stopCooldownSec',3);
+  document.getElementById('sv-cooldown').textContent=lsGet('stopCooldownSec',3)+'s';
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init(){
+  lucide.createIcons();
+  const _initTheme=lsGet('theme',matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  const _initCustomTheme=lsGet('customTheme',_initTheme);
+  applyTheme(_initTheme,_initCustomTheme);
+  buildThemePopup();
+  document.getElementById('themeToggleBtn').addEventListener('click',()=>{
+    // Quick toggle dark/light; popup appears on hover
+    const cur=document.documentElement.getAttribute('data-theme');
+    applyTheme(cur==='dark'?'light':'dark');
+  });
+  restoreScale();
+  restoreSections();
+  restoreUiOptions();
+
+  window.addEventListener('beforeunload',()=>{
+    navigator.sendBeacon(API+'/save_state',JSON.stringify({win_w:window.innerWidth,win_h:window.innerHeight}));
+    navigator.sendBeacon(API+'/quit','{}');
+  });
+
+  // Poll until connected — no scary "offline" banner on first load
+  let attempts=0;
+  const tryConnect=async()=>{
+    const s=await api('/status');
+    if(s){
+      setConnected(true);
+      applyConfigToUI(s.cfg);
+      updateFromStatus(s);
+      if(s.running){await api('/stop','POST');log('Auto-stopped on launch','w');}
+      seqProfilesLoad();
+      seqProfiles[activeProfileIdx].steps.length
+        ? (sequence=seqProfiles[activeProfileIdx].steps, pushSeq())
+        : await loadSeq();
+      renderSeqProfileTabs();
+      updateSeqProfileHeader();
+      await loadCustomPresets();
+      log('LexiClicker Pro v2 ready 🎯','i');
+  restoreLang();
+  applyMinTrayPref();
+  restoreSoundPrefs();
+  preloadAllSounds();
+  _ivLoad();
+      log('F8=save pos · F6=toggle','i');
+      setInterval(poll,600);
+      setInterval(pollCursor,200);
+      setInterval(pollViz,80);
+    }else{
+      attempts++;
+      if(attempts>5) setConnected(false);
+      setTimeout(tryConnect,800);
+    }
+  };
+  tryConnect();
+}
+init();
+
+// ── Inline interval edit ────────────────────────────────────────────────────
+function startEditInterval(span){
+  const cur = parseInt(span.textContent)||100;
+  const inp = document.createElement('input');
+  inp.type='number'; inp.min=1; inp.max=99999; inp.value=cur;
+  inp.style.cssText='width:72px;padding:2px 4px;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--primary);background:var(--surface-2);border:1px solid var(--primary);border-radius:4px;text-align:center';
+  span.replaceWith(inp);
+  inp.focus(); inp.select();
+  function commit(){
+    let v=Math.max(1,parseInt(inp.value)||100);
+    const sl=document.getElementById('sl-interval');
+    sl.min=1; sl.value=Math.min(v,5000);
+    const newSpan=document.createElement('span');
+    newSpan.className='slider-val'; newSpan.id='sv-interval';
+    newSpan.title='Click to edit ms value';
+    newSpan.style.cssText='cursor:pointer';
+    newSpan.textContent=v>=1000?(v/1000).toFixed(1)+'s':v+'ms';
+    newSpan.onclick=function(){startEditInterval(this)};
+    inp.replaceWith(newSpan);
+    cfgSend({interval:v});
+  }
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')commit();if(e.key==='Escape'){inp.value=cur;commit();}});
+}
+
+// ── Panel expand/collapse ───────────────────────────────────────────────────
+const _panelExpanded={};
+function togglePanelExpand(panelId,btnId){
+  const el=document.getElementById(panelId);
+  const btn=document.getElementById(btnId);
+  const expanded=!_panelExpanded[panelId];
+  _panelExpanded[panelId]=expanded;
+  if(expanded){
+    el.style.maxHeight='none';
+    el.style.overflow='auto';
+    if(btn) btn.innerHTML='<i data-lucide="minimize-2" style="width:11px;height:11px"></i>';
+  } else {
+    el.style.maxHeight=panelId==='logBody'?'300px':'220px';
+    if(btn) btn.innerHTML='<i data-lucide="maximize-2" style="width:11px;height:11px"></i>';
+  }
+  lucide.createIcons();
+}
+
+// ── Localization ────────────────────────────────────────────────────────────
+const LANGS={
+  en:{start:'Start Clicking',stop:'Stop',status_idle:'Idle',status_run:'Running',
+      seq:'Click Sequence',log:'Activity Log',interval:'Interval',mouse:'Mouse',
+      location:'Location',repeat:'Repeat',options:'Options',presets:'Presets',
+      hint_start:'Press Start or',hint_f8:'Hover anywhere · F8 or Save Pos to fix target',
+      saved:'Saved',this_run:'This Run',total:'Total',cps:'CPS',lang_label:'Language',
+      viz_label:'Click visualizer',viz_desc:'Show dot animation at click point',
+      sound_label:'Sound feedback',sound_desc:'Play tick on each click',
+      focus_label:'Stop on focus loss',focus_desc:'Auto-stop when window loses focus',
+      jitter_label:'Position jitter',jitter_desc:'±N px noise',
+      mintray_label:'Hide to system tray',mintray_desc:'App stays running in notification area',
+      double_label:'Double click',
+      invisible_label:'Invisible click',invisible_desc:'Click at fixed pos without moving cursor',
+      seq_empty:'No steps — hover target, press F8, then "Add to seq"',
+      move_dur_label:'Move duration',hotkey_label:'Hotkey (toggle)',data_label:'Data',
+      export_lbl:'Export settings',import_lbl:'Import settings',status_label:'Status',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey',
+      cooldown_label:'Restart cooldown',cooldown_desc:'Delay before clicking can restart after stop',
+      cooldown_sec_label:'Cooldown duration',
+      viz_label:'Click visualizer',viz_desc:'Show dot animation at click point',
+      sound_label:'Sound feedback',sound_desc:'Play sound on each click',
+      focus_label:'Stop on focus loss',focus_desc:'Auto-stop when window loses focus',
+      jitter_label:'Position jitter',jitter_desc:'±N px noise',
+      preset_gaming:'Gaming',preset_gaming_desc:'50ms fixed · left · infinite',
+      preset_farming:'Farming',preset_farming_desc:'1s random · left · infinite',
+      preset_human:'Human-like',preset_human_desc:'Human mode · jitter on',
+      preset_rapid:'Rapid Fire',preset_rapid_desc:'10ms · max speed',
+      preset_test:'Test Run',preset_test_desc:'200ms · 10 clicks'},
+  uk:{start:'Почати клікання',stop:'Зупинити',status_idle:'Очікування',status_run:'Активно',
+      seq:'Послідовність',log:'Журнал',interval:'Інтервал',mouse:'Миша',
+      location:'Позиція',repeat:'Повтор',options:'Налаштування',presets:'Пресети',
+      hint_start:'Натисніть Старт або',hint_f8:'Наведіть курсор · F8 або Зберегти позицію',
+      saved:'Збережено',this_run:'Цей сеанс',total:'Всього',cps:'КПС',lang_label:'Мова',
+      viz_label:'Візуалізатор кліків',viz_desc:'Анімація точки при кліку',
+      sound_label:'Звуковий сигнал',sound_desc:'Тік при кожному кліку',
+      focus_label:'Стоп при втраті фокусу',focus_desc:'Авто-зупинка при зміні вікна',
+      jitter_label:'Джиттер позиції',jitter_desc:'±N пікселів шуму',
+      mintray_label:'Сховати у системний трей',mintray_desc:'Застосунок залишається у трей',
+      double_label:'Подвійний клік',
+      invisible_label:'Невидимий клік',invisible_desc:'Клік без переміщення курсора',
+      seq_empty:'Кроків немає — наведіть курсор, F8, потім "Додати"',
+      move_dur_label:'Тривалість руху',hotkey_label:'Гаряча клавіша',data_label:'Дані',export_lbl:'Експорт налаштувань',import_lbl:'Імпорт налаштувань',status_label:'Статус',
+      hover_anywhere:'Наведіть курсор будь-де',profiles_label:'Профілі',saved_presets:'Збережені пресети',
+      button_label:'Кнопка',click_count:'Кількість кліків',mode_label:'Режим',ready_label:'Готово',
+      set_pos_hotkey_label:'Гаряча клавіша позиції',
+      cooldown_label:'Затримка перезапуску',cooldown_desc:'Затримка перед повторним запуском',
+      cooldown_sec_label:'Тривалість затримки',
+      viz_label:'Візуалізатор кліків',viz_desc:'Показати анімацію в точці кліку',
+      sound_label:'Звуковий відгук',sound_desc:'Відтворити звук при кліку',
+      focus_label:'Зупинка при втраті фокусу',focus_desc:'Автозупинка коли вікно неактивне',
+      jitter_label:'Джиттер позиції',jitter_desc:'±N пікселів шуму'},
+  de:{start:'Klicken starten',stop:'Stopp',status_idle:'Inaktiv',status_run:'Aktiv',
+      seq:'Klick-Sequenz',log:'Protokoll',interval:'Intervall',mouse:'Maus',
+      location:'Position',repeat:'Wiederholen',options:'Optionen',presets:'Voreinstellungen',
+      hint_start:'Start drücken oder',hint_f8:'Maus bewegen · F8 oder Position speichern',
+      saved:'Gespeichert',this_run:'Diese Sitzung',total:'Gesamt',cps:'KPS',lang_label:'Sprache',
+      viz_label:'Klick-Visualizer',viz_desc:'Punktanimation beim Klick',
+      sound_label:'Ton-Feedback',sound_desc:'Klick-Sound abspielen',
+      focus_label:'Stop bei Fokusverlust',focus_desc:'Auto-Stop beim Fensterwechsel',
+      jitter_label:'Position-Jitter',jitter_desc:'±N Pixel Rauschen',
+      mintray_label:'Im Tray verstecken',mintray_desc:'App läuft im Infobereich weiter',
+      double_label:'Doppelklick',
+      invisible_label:'Unsichtbarer Klick',invisible_desc:'Klicken ohne Cursorbewegung',
+      seq_empty:'Keine Schritte — Cursor bewegen, F8, dann "Hinzufügen"',
+      move_dur_label:'Bewegungsdauer',hotkey_label:'Hotkey (Umschalten)',data_label:'Daten',export_lbl:'Einstellungen exportieren',import_lbl:'Einstellungen importieren',status_label:'Status',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  fr:{start:'Démarrer',stop:'Arrêter',status_idle:'Inactif',status_run:'En cours',
+      seq:'Séquence de clics',log:'Journal',interval:'Intervalle',mouse:'Souris',
+      location:'Position',repeat:'Répéter',options:'Options',presets:'Préréglages',
+      hint_start:'Appuyez sur Démarrer ou',hint_f8:'Survolez · F8 pour fixer la cible',
+      saved:'Enregistré',this_run:'Cette session',total:'Total',cps:'CPS',lang_label:'Langue',
+      viz_label:'Visualiseur de clics',viz_desc:'Animation au point de clic',
+      sound_label:'Retour sonore',sound_desc:'Son à chaque clic',
+      focus_label:'Stop sur perte de focus',focus_desc:'Arrêt auto quand fenêtre change',
+      jitter_label:'Jitter de position',jitter_desc:'Bruit ±N pixels',
+      mintray_label:'Masquer dans la zone de notif',mintray_desc:'L\'app reste dans la barre système',
+      double_label:'Double clic',
+      invisible_label:'Clic invisible',invisible_desc:'Cliquer sans bouger le curseur',
+      seq_empty:'Aucune étape — survolez, F8, puis "Ajouter"',
+      move_dur_label:'Durée du mouvement',hotkey_label:'Raccourci (bascule)',data_label:'Données',export_lbl:'Exporter les paramètres',import_lbl:'Importer les paramètres',status_label:'Statut',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  es:{start:'Iniciar',stop:'Detener',status_idle:'Inactivo',status_run:'Ejecutando',
+      seq:'Secuencia',log:'Registro',interval:'Intervalo',mouse:'Ratón',
+      location:'Ubicación',repeat:'Repetir',options:'Opciones',presets:'Preajustes',
+      hint_start:'Presiona Iniciar o',hint_f8:'Mueve el cursor · F8 para fijar objetivo',
+      saved:'Guardado',this_run:'Esta sesión',total:'Total',cps:'CPS',lang_label:'Idioma',
+      viz_label:'Visualizador de clics',viz_desc:'Animación en punto de clic',
+      sound_label:'Sonido de clic',sound_desc:'Tick en cada clic',
+      focus_label:'Parar al perder foco',focus_desc:'Auto-parar al cambiar ventana',
+      jitter_label:'Jitter de posición',jitter_desc:'Ruido ±N píxeles',
+      mintray_label:'Ocultar en bandeja',mintray_desc:'La app sigue en el área de notificación',
+      double_label:'Doble clic',
+      invisible_label:'Clic invisible',invisible_desc:'Clic sin mover el cursor',
+      seq_empty:'Sin pasos — cursor, F8, luego "Añadir"',
+      move_dur_label:'Duración del movimiento',hotkey_label:'Tecla rápida',data_label:'Datos',export_lbl:'Exportar configuración',import_lbl:'Importar configuración',status_label:'Estado',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  it:{start:'Inizia clic',stop:'Ferma',status_idle:'Inattivo',status_run:'In esecuzione',
+      seq:'Sequenza clic',log:'Registro',interval:'Intervallo',mouse:'Mouse',
+      location:'Posizione',repeat:'Ripeti',options:'Opzioni',presets:'Impostazioni',
+      hint_start:'Premi Avvia o',hint_f8:'Passa sopra ovunque · F8 per fissare la posizione',
+      saved:'Salvato',this_run:'Questa sessione',total:'Totale',cps:'CPS',lang_label:'Lingua',
+      viz_label:'Visualizzatore clic',viz_desc:'Animazione nel punto di clic',
+      sound_label:'Feedback audio',sound_desc:'Tic ad ogni clic',
+      focus_label:'Stop alla perdita di focus',focus_desc:'Arresto auto al cambio finestra',
+      jitter_label:'Jitter posizione',jitter_desc:'Rumore ±N pixel',
+      mintray_label:'Nascondi nel tray',mintray_desc:'L\'app rimane nell\'area di notifica',
+      double_label:'Doppio clic',
+      invisible_label:'Clic invisibile',invisible_desc:'Clic senza muovere il cursore',
+      seq_empty:'Nessun passo — passa sopra, F8, poi "Aggiungi"',
+      move_dur_label:'Durata movimento',hotkey_label:'Tasto rapido',data_label:'Dati',export_lbl:'Esporta impostazioni',import_lbl:'Importa impostazioni',status_label:'Stato',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  tr:{start:'Tıklamayı Başlat',stop:'Durdur',status_idle:'Bekliyor',status_run:'Çalışıyor',
+      seq:'Tıklama Sırası',log:'Etkinlik Günlüğü',interval:'Aralık',mouse:'Fare',
+      location:'Konum',repeat:'Tekrar',options:'Seçenekler',presets:'Hazır Ayarlar',
+      hint_start:'Başlat\'a bas veya',hint_f8:'Herhangi bir yere geç · F8 hedefi sabitle',
+      saved:'Kaydedildi',this_run:'Bu Oturum',total:'Toplam',cps:'CPS',lang_label:'Dil',
+      viz_label:'Tıklama görselleştirici',viz_desc:'Tıklama noktasında animasyon',
+      sound_label:'Ses geri bildirimi',sound_desc:'Her tıklamada ses',
+      focus_label:'Odak kaybında durdur',focus_desc:'Pencere değişince otomatik dur',
+      jitter_label:'Konum titremesi',jitter_desc:'±N piksel gürültü',
+      mintray_label:'Tepsi alanına gizle',mintray_desc:'Uygulama bildirim alanında çalışmaya devam eder',
+      double_label:'Çift tıklama',
+      invisible_label:'Görünmez tıklama',invisible_desc:'İmleci hareket ettirmeden tıkla',
+      seq_empty:'Adım yok — hedefi geç, F8, sonra "Ekle"',
+      move_dur_label:'Hareket süresi',hotkey_label:'Kısayol tuşu',data_label:'Veri',export_lbl:'Ayarları dışa aktar',import_lbl:'Ayarları içe aktar',status_label:'Durum',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  zh:{start:'开始点击',stop:'停止',status_idle:'空闲',status_run:'运行中',
+      seq:'点击序列',log:'日志',interval:'间隔',mouse:'鼠标',
+      location:'位置',repeat:'重复',options:'选项',presets:'预设',
+      hint_start:'按开始或',hint_f8:'悬停任意位置 · F8 保存位置',
+      saved:'已保存',this_run:'本次',total:'总计',cps:'CPS',lang_label:'语言',
+      viz_label:'点击可视化',viz_desc:'点击处显示动画',
+      sound_label:'声音反馈',sound_desc:'每次点击播放声音',
+      focus_label:'失焦停止',focus_desc:'窗口失焦时自动停止',
+      jitter_label:'位置抖动',jitter_desc:'±N 像素随机噪声',
+      mintray_label:'隐藏到通知区域',mintray_desc:'应用在系统托盘继续运行',
+      double_label:'双击',
+      invisible_label:'隐形点击',invisible_desc:'不移动光标点击',
+      seq_empty:'无步骤 — 悬停目标，F8，然后"添加"',
+      move_dur_label:'移动时长',hotkey_label:'热键（切换）',data_label:'数据',export_lbl:'导出设置',import_lbl:'导入设置',status_label:'状态',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  ja:{start:'クリック開始',stop:'停止',status_idle:'待機中',status_run:'実行中',
+      seq:'クリックシーケンス',log:'ログ',interval:'間隔',mouse:'マウス',
+      location:'位置',repeat:'繰り返し',options:'オプション',presets:'プリセット',
+      hint_start:'スタートを押すか',hint_f8:'どこでもホバー · F8 で位置を保存',
+      saved:'保存済み',this_run:'今回',total:'合計',cps:'CPS',lang_label:'言語',
+      viz_label:'クリックビジュアライザ',viz_desc:'クリック位置にアニメーション',
+      sound_label:'サウンド',sound_desc:'クリックごとに音',
+      focus_label:'フォーカス喪失で停止',focus_desc:'ウィンドウ切替時に自動停止',
+      jitter_label:'位置ジッター',jitter_desc:'±N ピクセルのノイズ',
+      mintray_label:'通知エリアに隠す',mintray_desc:'アプリは通知エリアで実行継続',
+      double_label:'ダブルクリック',
+      invisible_label:'インビジブルクリック',invisible_desc:'カーソルを動かさずクリック',
+      seq_empty:'ステップなし — ターゲットにホバー，F8，"追加"',
+      move_dur_label:'移動時間',hotkey_label:'ホットキー',data_label:'データ',export_lbl:'設定をエクスポート',import_lbl:'設定をインポート',status_label:'ステータス',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  ko:{start:'클릭 시작',stop:'정지',status_idle:'대기 중',status_run:'실행 중',
+      seq:'클릭 시퀀스',log:'활동 로그',interval:'간격',mouse:'마우스',
+      location:'위치',repeat:'반복',options:'옵션',presets:'프리셋',
+      hint_start:'시작을 누르거나',hint_f8:'어디든 호버 · F8 으로 위치 저장',
+      saved:'저장됨',this_run:'이번',total:'총',cps:'CPS',lang_label:'언어',
+      viz_label:'클릭 시각화',viz_desc:'클릭 지점에 애니메이션 표시',
+      sound_label:'사운드 피드백',sound_desc:'클릭마다 틱 소리',
+      focus_label:'포커스 잃으면 정지',focus_desc:'창 전환 시 자동 정지',
+      jitter_label:'위치 지터',jitter_desc:'±N 픽셀 노이즈',
+      mintray_label:'알림 영역에 숨기기',mintray_desc:'앱이 트레이에서 계속 실행됩니다',
+      double_label:'더블 클릭',
+      invisible_label:'보이지 않는 클릭',invisible_desc:'커서 이동 없이 클릭',
+      seq_empty:'단계 없음 — 목표에 호버, F8, "추가"',
+      move_dur_label:'이동 시간',hotkey_label:'단축키',data_label:'데이터',export_lbl:'설정 내보내기',import_lbl:'설정 가져오기',status_label:'상태',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  ar:{start:'بدء النقر',stop:'إيقاف',status_idle:'خامل',status_run:'يعمل',
+      seq:'تسلسل النقرات',log:'سجل النشاط',interval:'الفاصل الزمني',mouse:'الماوس',
+      location:'الموقع',repeat:'تكرار',options:'خيارات',presets:'إعدادات مسبقة',
+      hint_start:'اضغط ابدأ أو',hint_f8:'مرر فوق أي مكان · F8 لتثبيت الهدف',
+      saved:'تم الحفظ',this_run:'هذه الجلسة',total:'الإجمالي',cps:'CPS',lang_label:'اللغة',
+      viz_label:'مرئيات النقر',viz_desc:'رسوم متحركة عند نقطة النقر',
+      sound_label:'ردود فعل صوتية',sound_desc:'صوت عند كل نقرة',
+      focus_label:'توقف عند فقدان التركيز',focus_desc:'توقف تلقائي عند تغيير النافذة',
+      jitter_label:'اهتزاز الموضع',jitter_desc:'ضوضاء ±N بكسل',
+      mintray_label:'إخفاء في منطقة الإشعارات',mintray_desc:'يستمر التطبيق في منطقة الإعلام',
+      double_label:'نقر مزدوج',
+      invisible_label:'نقر غير مرئي',invisible_desc:'نقر بدون تحريك المؤشر',
+      seq_empty:'لا توجد خطوات — مرر فوق الهدف، F8، ثم "إضافة"',
+      move_dur_label:'مدة الحركة',hotkey_label:'مفتاح الاختصار',data_label:'البيانات',export_lbl:'تصدير الإعدادات',import_lbl:'استيراد الإعدادات',status_label:'الحالة',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  pl:{start:'Zacznij klikać',stop:'Zatrzymaj',status_idle:'Bezczynny',status_run:'Aktywny',
+      seq:'Sekwencja',log:'Dziennik',interval:'Interwał',mouse:'Mysz',
+      location:'Pozycja',repeat:'Powtórz',options:'Opcje',presets:'Presety',
+      hint_start:'Naciśnij Start lub',hint_f8:'Najedź gdziekolwiek · F8 lub Zapisz pozycję',
+      saved:'Zapisano',this_run:'Ta sesja',total:'Łącznie',cps:'CPS',lang_label:'Język',
+      viz_label:'Wizualizator kliknięć',viz_desc:'Animacja w miejscu kliknięcia',
+      sound_label:'Dźwięk kliknięcia',sound_desc:'Odtwórz dźwięk przy kliknięciu',
+      focus_label:'Stop przy utracie fokusu',focus_desc:'Automatyczne zatrzymanie',
+      jitter_label:'Jitter pozycji',jitter_desc:'Losowy szum ±N pikseli',
+      mintray_label:'Ukryj w zasobniku',mintray_desc:'Aplikacja działa w obszarze powiadomień',
+      double_label:'Podwójne kliknięcie',
+      invisible_label:'Niewidoczny klik',invisible_desc:'Klik bez ruchu kursora',
+      seq_empty:'Brak kroków — najedź kursorem, F8, potem "Dodaj"',
+      move_dur_label:'Czas ruchu',hotkey_label:'Skrót klawiszowy',data_label:'Dane',export_lbl:'Eksportuj ustawienia',import_lbl:'Importuj ustawienia',status_label:'Status',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  pt:{start:'Começar',stop:'Parar',status_idle:'Inativo',status_run:'A correr',
+      seq:'Sequência',log:'Registo',interval:'Intervalo',mouse:'Rato',
+      location:'Localização',repeat:'Repetir',options:'Opções',presets:'Predefinições',
+      hint_start:'Prima Iniciar ou',hint_f8:'Passe o rato · F8 para fixar o alvo',
+      saved:'Guardado',this_run:'Esta sessão',total:'Total',cps:'CPS',lang_label:'Idioma',
+      viz_label:'Visualizador de cliques',viz_desc:'Animação no ponto de clique',
+      sound_label:'Feedback sonoro',sound_desc:'Toque a cada clique',
+      focus_label:'Parar ao perder foco',focus_desc:'Paragem automática ao mudar janela',
+      jitter_label:'Jitter de posição',jitter_desc:'Ruído ±N píxeis',
+      mintray_label:'Esconder no tray',mintray_desc:'App continua na área de notificação',
+      double_label:'Duplo clique',
+      invisible_label:'Clique invisível',invisible_desc:'Clique sem mover o cursor',
+      seq_empty:'Sem passos — passe o rato, F8, depois "Adicionar"',
+      move_dur_label:'Duração do movimento',hotkey_label:'Tecla de atalho',data_label:'Dados',export_lbl:'Exportar configurações',import_lbl:'Importar configurações',status_label:'Status',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+  be:{start:'Пачаць кліканне',stop:'Спыніць',status_idle:'Чаканне',status_run:'Актыўна',
+      seq:'Паслядоўнасць кліку',log:'Журнал актыўнасці',interval:'Інтэрвал',mouse:'Мыш',
+      location:'Месцазнаходжанне',repeat:'Паўтарэнне',options:'Налады',presets:'Шаблоны',
+      hint_start:'Націсніце Старт або',hint_f8:'Навядзіце курсор · F8 або Захаваць пазіцыю',
+      saved:'Захавана',this_run:'Гэты сеанс',total:'Усяго',cps:'КПС',lang_label:'Мова',
+      viz_label:'Візуалізацыя кліку',viz_desc:'Анімацыя ў месцы кліку',
+      sound_label:'Гукавы зваротны сувязь',sound_desc:'Гук пры кожным кліку',
+      focus_label:'Спыніць пры страце фокусу',focus_desc:'Аўта-спыненне пры змене акна',
+      jitter_label:'Дрыготка пазіцыі',jitter_desc:'±N пікс. шуму',
+      mintray_label:'Схаваць у сістэмны трэй',mintray_desc:'Праграма застаецца ў трэі',
+      double_label:'Падвойны клік',
+      invisible_label:'Нябачны клік',invisible_desc:'Клік без бачнага руху курсора',
+      seq_empty:'Няма крокаў — навядзіце, F8, потым "Дадаць у паслядоўнасць"',
+      move_dur_label:'Працягласць руху',hotkey_label:'Гарачая клавіша',data_label:'Даныя',
+      export_lbl:'Экспарт налад',import_lbl:'Імпарт налад',status_label:'Статус',
+      hover_anywhere:'Hover anywhere',profiles_label:'Profiles',saved_presets:'Saved Presets',
+      button_label:'Button',click_count:'Click count',mode_label:'Mode',ready_label:'Ready',
+      set_pos_hotkey_label:'Set Position hotkey'},
+};
+let curLang='en';
+function setLang(code){
+  const L=LANGS[code]||LANGS.en; curLang=code;
+  lsSave({lang:code});
+  const sl=document.getElementById('sel-lang');
+  if(sl) sl.value=code;
+  // Main button
+  const mbt=document.getElementById('mainBtnText');
+  if(mbt) mbt.textContent=running?L.stop:L.start;
+  // Status sub
+  const sub=document.getElementById('statusSub');
+  const hkb=document.getElementById('hotkeyBadge');
+  const hkTxt=hkb?hkb.textContent:'F6';
+  if(sub&&!running) sub.innerHTML=L.hint_start+' <kbd class="kbd" id="hotkeyBadge">'+hkTxt+'</kbd>';
+  // Status text (Idle / Running)
+  const stxt=document.getElementById('statusText');
+  if(stxt) stxt.textContent=running?(L.status_run||'Running'):(L.status_idle||'Idle');
+  // Coord hint
+  const ch=document.getElementById('coordHint');
+  if(ch) ch.innerHTML=L.hint_f8;
+  // Section title text nodes (first text child of .sec-title)
+  const secMap={
+    'sec-presets':'presets','sec-interval':'interval','sec-mouse':'mouse',
+    'sec-location':'location','sec-repeat':'repeat','sec-options':'options'
+  };
+  Object.entries(secMap).forEach(([id,key])=>{
+    const sec=document.getElementById(id);
+    if(!sec||!L[key]) return;
+    const t=sec.querySelector('.sec-title');
+    if(!t) return;
+    // Replace last text node
+    for(let i=t.childNodes.length-1;i>=0;i--){
+      if(t.childNodes[i].nodeType===3&&t.childNodes[i].textContent.trim()){
+        t.childNodes[i].textContent=' '+L[key];
+        break;
+      }
+    }
+  });
+  // Translate toggle labels
+  const togMap={
+    'tog-viz':['viz_label','viz_desc'],'tog-sound':['sound_label','sound_desc'],
+    'tog-focus':['focus_label','focus_desc'],'tog-jitter':['jitter_label','jitter_desc'],
+    'tog-mintray':['mintray_label','mintray_desc'],'tog-double':['double_label'],
+    'tog-invisible':['invisible_label','invisible_desc']
+  };
+  Object.entries(togMap).forEach(([id,keys])=>{
+    const inp=document.getElementById(id);
+    if(!inp) return;
+    const row=inp.closest('.toggle-row');
+    if(!row) return;
+    const nm=row.querySelector('.t-name');
+    const ds=row.querySelector('.t-desc');
+    if(nm&&L[keys[0]]) nm.textContent=L[keys[0]];
+    if(ds&&keys[1]&&L[keys[1]]) ds.textContent=L[keys[1]];
+  });
+  // (btn text already set above)
+  // Seq empty hint
+  const seqEmp=document.getElementById('seqEmpty');
+  if(seqEmp&&L.seq_empty) seqEmp.textContent=L.seq_empty;
+  // Log label
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(L[k]) el.textContent=L[k];
+  });
+}
+function restoreLang(){
+  const code=lsGet('lang','en');
+  setLang(code);
+}
+
+
+// ── Minimize to tray ────────────────────────────────────────────────────────
+function minimizeToTray(){
+  api('/minimize_to_tray','POST');
+}
+
+// Show/hide minimize btn based on saved preference
+function applyMinTrayPref(){
+  const on=lsGet('minToTray',true);
+  document.getElementById('tog-mintray').checked=on;
+  document.getElementById('minimizeTrayBtn').style.display=on?'flex':'none';
+  fetch(API+'/set_mintray',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:on})}).catch(()=>{});
+}
+
+// Intercept window close → route to Python for hide-or-quit decision
+window.addEventListener('beforeunload', function() {
+  // Use sendBeacon for reliable delivery during unload
+  navigator.sendBeacon(API+'/close_or_hide');
+});
+
+function nudgeInterval(d){const sl=document.getElementById('sl-interval');if(!sl)return;const v=Math.max(1,Math.min(5000,(parseInt(sl.value)||100)+d));sl.value=v;slideIntervalDisplay(v);cfgSend({interval:v});}
+let _ivAdj=[],_ivCapIdx=-1;
+function _ivSave(){try{localStorage.setItem('ac_iv_adj',JSON.stringify(_ivAdj));}catch(e){}}
+function _ivLoad(){try{const r=localStorage.getItem('ac_iv_adj');if(r)_ivAdj=JSON.parse(r);}catch(e){}renderIvAdj();}
+function addIntervalAdjuster(){_ivAdj.push({key:'',delta:10});_ivSave();renderIvAdj();}
+function renderIvAdj(){
+  const list=document.getElementById('intervalAdjustersList');if(!list)return;list.innerHTML='';
+  _ivAdj.forEach((adj,i)=>{
+    const row=document.createElement('div');row.style.cssText='display:flex;gap:4px;align-items:center;margin-bottom:2px';
+    const cb=document.createElement('button');cb.className='btn btn-ghost btn-xs';cb.style.cssText='flex-shrink:0;min-width:86px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    cb.textContent=adj.key?adj.key.toUpperCase():'⌨ Set key';cb.style.color=adj.key?'var(--primary)':'var(--warning)';cb.onclick=()=>startIvCap(i);
+    const di=document.createElement('input');di.type='number';di.className='input';di.style.cssText='width:64px;text-align:center;flex-shrink:0';di.value=adj.delta;di.placeholder='±ms';di.oninput=()=>{_ivAdj[i].delta=parseInt(di.value)||0;_ivSave();};
+    const rm=document.createElement('button');rm.className='btn btn-ghost btn-xs';rm.style.cssText='flex-shrink:0;color:var(--error)';rm.textContent='×';rm.onclick=()=>{_ivAdj.splice(i,1);_ivSave();renderIvAdj();};
+    row.append(cb,di,rm);list.appendChild(row);
+  });
+}
+function startIvCap(idx){
+  _ivCapIdx=idx;renderIvAdj();
+  function done(k){_ivAdj[idx].key=k;_ivSave();_ivCapIdx=-1;off();renderIvAdj();}
+  function ok(e){if(e.key==='Escape'){_ivCapIdx=-1;off();renderIvAdj();return;}e.preventDefault();e.stopPropagation();const m={' ':'space',ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};done(m[e.key]||e.key.toLowerCase());}
+  function om(e){e.preventDefault();e.stopPropagation();const n=['mouse1','mouse3','mouse2','mouse4','mouse5'];done(n[e.button]||('mouse'+(e.button+1)));}
+  function ow(e){e.preventDefault();e.stopPropagation();done(e.deltaY<0?'wheelup':'wheeldown');}
+  function off(){document.removeEventListener('keydown',ok,true);document.removeEventListener('mousedown',om,true);document.removeEventListener('wheel',ow,{capture:true,passive:false});}
+  document.addEventListener('keydown',ok,true);document.addEventListener('mousedown',om,true);document.addEventListener('wheel',ow,{capture:true,passive:false});
+}
+document.addEventListener('keydown',e=>{if(_ivCapIdx>=0||_capturingHotkey)return;const k=e.key.toLowerCase();_ivAdj.forEach(a=>{if(a.key===k)nudgeInterval(a.delta);});},{passive:true});
+document.addEventListener('mousedown',e=>{if(_ivCapIdx>=0||_capturingHotkey)return;const k=['mouse1','mouse3','mouse2','mouse4','mouse5'][e.button]||('mouse'+(e.button+1));_ivAdj.forEach(a=>{if(a.key===k)nudgeInterval(a.delta);});},{passive:true});
+document.addEventListener('wheel',e=>{if(_ivCapIdx>=0||_capturingHotkey)return;const k=e.deltaY<0?'wheelup':'wheeldown';_ivAdj.forEach(a=>{if(a.key===k)nudgeInterval(a.delta);});},{passive:true});
+
+
+// ── Draggable sidebar panels ─────────────────────────────────────────────────
+(function initDragPanels(){
+  const LS_ORDER = 'ac_lexi_panel_order';
+
+  function getSecs(){
+    return Array.from(document.querySelectorAll('.sidebar .sec'));
+  }
+
+  function saveOrder(){
+    const ids = getSecs().map(s=>s.id);
+    try{ localStorage.setItem(LS_ORDER, JSON.stringify(ids)); }catch(e){}
+  }
+
+  function restoreOrder(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(LS_ORDER)||'null');
+      if(!saved||!Array.isArray(saved)) return;
+      const sidebar = document.querySelector('.sidebar');
+      if(!sidebar) return;
+      saved.forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) sidebar.appendChild(el);
+      });
+    }catch(e){}
+  }
+
+  let dragEl=null, dragOver=null, dragPos='after';
+
+  function onDragStart(e){
+    dragEl = e.currentTarget.closest('.sec');
+    if(!dragEl) return;
+    dragEl.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain', dragEl.id);
+  }
+
+  function onDragEnd(){
+    if(dragEl) dragEl.classList.remove('dragging');
+    getSecs().forEach(s=>{
+      s.classList.remove('drag-over-before','drag-over-after');
+    });
+    dragEl=null; dragOver=null;
+  }
+
+  function onDragOver(e){
+    e.preventDefault();
+    e.dataTransfer.dropEffect='move';
+    const target = e.currentTarget.closest('.sec');
+    if(!target||target===dragEl) return;
+    getSecs().forEach(s=>s.classList.remove('drag-over-before','drag-over-after'));
+    const rect = target.getBoundingClientRect();
+    dragPos = (e.clientY < rect.top + rect.height/2) ? 'before' : 'after';
+    target.classList.add(dragPos==='before'?'drag-over-before':'drag-over-after');
+    dragOver = target;
+  }
+
+  function onDrop(e){
+    e.preventDefault();
+    if(!dragEl||!dragOver||dragEl===dragOver) return;
+    const sidebar = dragOver.parentElement;
+    getSecs().forEach(s=>s.classList.remove('drag-over-before','drag-over-after'));
+    if(dragPos==='before'){
+      sidebar.insertBefore(dragEl, dragOver);
+    } else {
+      dragOver.after(dragEl);
+    }
+    saveOrder();
+    dragEl=null; dragOver=null;
+  }
+
+  function bindGrip(grip){
+    const sec = grip.closest('.sec');
+    if(!sec) return;
+    sec.setAttribute('draggable','false'); // prevent accidental drag on body
+    grip.setAttribute('draggable','true');
+    grip.addEventListener('dragstart', onDragStart);
+    grip.addEventListener('dragend', onDragEnd);
+    sec.addEventListener('dragover', onDragOver);
+    sec.addEventListener('drop', onDrop);
+  }
+
+  function init(){
+    restoreOrder();
+    document.querySelectorAll('.sidebar .sec-drag-grip').forEach(bindGrip);
+  }
+
+  // Run after DOM ready (we're at end of body so it's fine, but double-safe)
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>
